@@ -1,9 +1,4 @@
-export default function MobileOrderPage() {
-  return (
-    <iframe
-      title="Мобильный заказ"
-      className="w-full h-[920px] border-0 rounded-2xl"
-      srcDoc={`<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
@@ -162,6 +157,12 @@ export default function MobileOrderPage() {
    elSubmit.disabled=true;
    elMessage.style.display='none';
    try{
+     const response = await fetch('/.netlify/functions/order', {
+       method:'POST',
+       headers:{'Content-Type':'application/json'},
+       body:JSON.stringify({rows,comment:elComment.value||''})
+     });
+     if(!response.ok){throw new Error('Request failed');}
      currentCode=''; rows=[]; elComment.value=''; syncUi(); elMessage.style.display='block';
    }catch(e){alert('Не удалось отправить заявку.');}
    finally{sending=false;elSubmit.disabled=false;}
@@ -188,7 +189,4 @@ export default function MobileOrderPage() {
 })();
 </script>
 </body>
-</html>`}
-    />
-  );
-}
+</html>
