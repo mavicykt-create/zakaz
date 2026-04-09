@@ -219,7 +219,7 @@ async function send(){
 
   const comment = (elComment.value || '').trim();
 
-  let fullText = lines.join('\n') + '\n\n' +
+  let fullText = 'Артикул\tКоличество\n' + lines.join('\n') + '\n\n' +
     'Сумма: ' + total.toLocaleString('ru-RU') + ' ₽';
 
   if(comment){
