@@ -1,9 +1,4 @@
-export default function MobileOrderPage() {
-  return (
-    <iframe
-      title="Мобильный заказ"
-      className="w-full h-screen border-0"
-      srcDoc={`<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
@@ -101,6 +96,7 @@ export default function MobileOrderPage() {
           <div class="badge dark">Всего<b id="total">0</b></div>
         </div>
       </div>
+
       <div class="panel preview">
         <div class="preview-code preview-empty" id="previewCode">Введите артикул</div>
         <div class="preview-qty" id="previewQty"></div>
@@ -109,20 +105,26 @@ export default function MobileOrderPage() {
           <button type="button" class="icon-btn plus" id="plus">+</button>
         </div>
       </div>
+
       <div class="display-wrap">
         <div class="display-label">Ввод</div>
         <div class="display" id="display">••••</div>
       </div>
+
       <div class="grid" id="grid"></div>
+
       <div class="comment-state" id="commentState">Комментарий: <strong>не добавлен</strong></div>
       <div class="order-total" id="orderTotal">Сумма заказа: 0 ₽</div>
+
       <div class="toolbar">
         <button type="button" class="submit" id="submit">Отправить заявку</button>
         <button type="button" class="comment-btn" id="openComment">💬</button>
       </div>
+
       <div class="msg" id="message">Заявка отправлена. Спасибо за заказ!</div>
     </div>
   </div>
+
   <div class="modal" id="commentModal">
     <div class="sheet">
       <div class="sheet-handle"></div>
@@ -134,106 +136,176 @@ export default function MobileOrderPage() {
       </div>
     </div>
   </div>
+
 <script>
 (function(){
- document.addEventListener('dblclick', function(e){ e.preventDefault(); }, { passive:false });
- let currentCode='';
- let rows=[];
- let sending=false;
- const elDisplay=document.getElementById('display');
- const elPositions=document.getElementById('positions');
- const elTotal=document.getElementById('total');
- const elPreviewCode=document.getElementById('previewCode');
- const elPreviewQty=document.getElementById('previewQty');
- const elPreviewActions=document.getElementById('previewActions');
- const elComment=document.getElementById('comment');
- const elMessage=document.getElementById('message');
- const elSubmit=document.getElementById('submit');
- const elCommentState=document.getElementById('commentState');
- const elOrderTotal=document.getElementById('orderTotal');
- const elModal=document.getElementById('commentModal');
- const elOpenComment=document.getElementById('openComment');
- const elCloseComment=document.getElementById('closeComment');
- const elSaveComment=document.getElementById('saveComment');
- function beep(freq, duration, volume){
-   try{
-     const A=window.AudioContext||window.webkitAudioContext;
-     if(!A)return;
-     const ctx=new A();
-     const o=ctx.createOscillator();
-     const g=ctx.createGain();
-     o.type='square';
-     o.frequency.setValueAtTime(freq||880,ctx.currentTime);
-     g.gain.setValueAtTime(volume||0.08,ctx.currentTime);
-     o.connect(g);
-     g.connect(ctx.destination);
-     o.start();
-     o.stop(ctx.currentTime+(duration||0.07));
-   }catch(e){}
- }
- function syncUi(){
-   elDisplay.textContent=(currentCode+'••••').slice(0,4);
-   elPositions.textContent=String(rows.length);
-   elTotal.textContent=String(rows.reduce((s,r)=>s+r.quantity,0));
-   if(!rows.length){
-     elPreviewCode.textContent='Введите артикул';
-     elPreviewCode.classList.add('preview-empty');
-     elPreviewQty.textContent='';
-     elPreviewActions.style.display='none';
-   } else {
-     const last=rows[rows.length-1];
-     elPreviewCode.textContent=last.article;
-     elPreviewCode.classList.remove('preview-empty');
-     elPreviewQty.textContent=last.quantity;
-     elPreviewActions.style.display='flex';
-   }
-   const hasComment=!!(elComment.value||'').trim();
-   elCommentState.innerHTML=hasComment ? 'Комментарий: <strong>добавлен</strong>' : 'Комментарий: <strong>не добавлен</strong>';
-   const totalAmount = rows.reduce((sum,r)=> sum + ((r.price || 0) * r.quantity), 0);
-   elOrderTotal.textContent='Сумма заказа: '+totalAmount.toLocaleString('ru-RU')+' ₽';
- }
- function addDigit(d){elMessage.style.display='none';if(currentCode.length>=4)return;currentCode+=d;syncUi();}
- function deleteLast(){elMessage.style.display='none';currentCode=currentCode.slice(0,-1);syncUi();}
- function addCode(){beep(880,0.07,0.08);if(currentCode.length!==4){alert('Введите 4 цифры артикула.');return;}const code=currentCode;const found=rows.find(r=>r.article===code);if(found){found.quantity+=1;}else{rows.push({article:code,quantity:1,price:0});}currentCode='';syncUi();}
- function updateQty(delta){if(!rows.length)return;beep(delta>0?980:620,0.05,0.06);const last=rows[rows.length-1];last.quantity+=delta;if(last.quantity<=0)rows.pop();syncUi();}
- async function submitOrder(){
-   if(!rows.length){alert('Добавь хотя бы один артикул.');return;}
-   if(sending)return;
-   sending=true;
-   elSubmit.disabled=true;
-   elMessage.style.display='none';
-   try{
-     currentCode='';
-     rows=[];
-     elComment.value='';
-     syncUi();
-     elMessage.style.display='block';
-   }catch(e){alert('Не удалось отправить заявку.');}
-   finally{sending=false;elSubmit.disabled=false;}
- }
- function openComment(){elModal.classList.add('open');setTimeout(()=>elComment.focus(),50)}
- function closeComment(){elModal.classList.remove('open')}
- function saveComment(){closeComment();syncUi()}
- ['1','2','3','4','5','6','7','8','9','del','0','ok'].forEach(function(key){
-   const btn=document.createElement('button');
-   btn.type='button';
-   btn.className='key'+(key==='ok'?' ok':'')+(key==='del'?' delete':'');
-   btn.textContent=key==='del'?'⌫':key==='ok'?'OK':key;
-   btn.addEventListener('click',function(){if(key==='del')return deleteLast(); if(key==='ok')return addCode(); addDigit(key);});
-   document.getElementById('grid').appendChild(btn);
- });
- document.getElementById('minus').addEventListener('click',function(){updateQty(-1);});
- document.getElementById('plus').addEventListener('click',function(){updateQty(1);});
- elSubmit.addEventListener('click',submitOrder);
- elOpenComment.addEventListener('click',openComment);
- elCloseComment.addEventListener('click',closeComment);
- elSaveComment.addEventListener('click',saveComment);
- elModal.addEventListener('click',function(e){if(e.target===elModal)closeComment();});
- syncUi();
+  document.addEventListener('dblclick', function(e){ e.preventDefault(); }, { passive:false });
+
+  let currentCode='';
+  let rows=[];
+  let sending=false;
+
+  const elDisplay=document.getElementById('display');
+  const elPositions=document.getElementById('positions');
+  const elTotal=document.getElementById('total');
+  const elPreviewCode=document.getElementById('previewCode');
+  const elPreviewQty=document.getElementById('previewQty');
+  const elPreviewActions=document.getElementById('previewActions');
+  const elComment=document.getElementById('comment');
+  const elMessage=document.getElementById('message');
+  const elSubmit=document.getElementById('submit');
+  const elCommentState=document.getElementById('commentState');
+  const elOrderTotal=document.getElementById('orderTotal');
+  const elModal=document.getElementById('commentModal');
+  const elOpenComment=document.getElementById('openComment');
+  const elCloseComment=document.getElementById('closeComment');
+  const elSaveComment=document.getElementById('saveComment');
+
+  function beep(freq, duration, volume){
+    try{
+      const A=window.AudioContext||window.webkitAudioContext;
+      if(!A)return;
+      const ctx=new A();
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      o.type='square';
+      o.frequency.setValueAtTime(freq||880,ctx.currentTime);
+      g.gain.setValueAtTime(volume||0.08,ctx.currentTime);
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.start();
+      o.stop(ctx.currentTime+(duration||0.07));
+    }catch(e){}
+  }
+
+  function syncUi(){
+    elDisplay.textContent=(currentCode+'••••').slice(0,4);
+    elPositions.textContent=String(rows.length);
+    elTotal.textContent=String(rows.reduce((s,r)=>s+r.quantity,0));
+
+    if(!rows.length){
+      elPreviewCode.textContent='Введите артикул';
+      elPreviewCode.classList.add('preview-empty');
+      elPreviewQty.textContent='';
+      elPreviewActions.style.display='none';
+    } else {
+      const last=rows[rows.length-1];
+      elPreviewCode.textContent=last.article;
+      elPreviewCode.classList.remove('preview-empty');
+      elPreviewQty.textContent=last.quantity;
+      elPreviewActions.style.display='flex';
+    }
+
+    const hasComment=!!(elComment.value||'').trim();
+    elCommentState.innerHTML=hasComment ? 'Комментарий: <strong>добавлен</strong>' : 'Комментарий: <strong>не добавлен</strong>';
+
+    const totalAmount = rows.reduce((sum,r)=> sum + ((r.price || 0) * r.quantity), 0);
+    elOrderTotal.textContent='Сумма заказа: '+totalAmount.toLocaleString('ru-RU')+' ₽';
+  }
+
+  function addDigit(d){
+    elMessage.style.display='none';
+    if(currentCode.length>=4)return;
+    currentCode+=d;
+    syncUi();
+  }
+
+  function deleteLast(){
+    elMessage.style.display='none';
+    currentCode=currentCode.slice(0,-1);
+    syncUi();
+  }
+
+  function addCode(){
+    beep(880,0.07,0.08);
+    if(currentCode.length!==4){
+      alert('Введите 4 цифры артикула.');
+      return;
+    }
+    const code=currentCode;
+    const found=rows.find(r=>r.article===code);
+
+    if(found){
+      found.quantity+=1;
+    } else {
+      rows.push({article:code,quantity:1,price:0});
+    }
+
+    currentCode='';
+    syncUi();
+  }
+
+  function updateQty(delta){
+    if(!rows.length)return;
+    beep(delta>0?980:620,0.05,0.06);
+    const last=rows[rows.length-1];
+    last.quantity+=delta;
+    if(last.quantity<=0)rows.pop();
+    syncUi();
+  }
+
+  async function submitOrder(){
+    if(!rows.length){
+      alert('Добавь хотя бы один артикул.');
+      return;
+    }
+    if(sending)return;
+
+    sending=true;
+    elSubmit.disabled=true;
+    elMessage.style.display='none';
+
+    try{
+      currentCode='';
+      rows=[];
+      elComment.value='';
+      syncUi();
+      elMessage.style.display='block';
+    }catch(e){
+      alert('Не удалось отправить заявку.');
+    }finally{
+      sending=false;
+      elSubmit.disabled=false;
+    }
+  }
+
+  function openComment(){
+    elModal.classList.add('open');
+    setTimeout(()=>elComment.focus(),50);
+  }
+
+  function closeComment(){
+    elModal.classList.remove('open');
+  }
+
+  function saveComment(){
+    closeComment();
+    syncUi();
+  }
+
+  ['1','2','3','4','5','6','7','8','9','del','0','ok'].forEach(function(key){
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='key'+(key==='ok'?' ok':'')+(key==='del'?' delete':'');
+    btn.textContent=key==='del'?'⌫':key==='ok'?'OK':key;
+    btn.addEventListener('click',function(){
+      if(key==='del') return deleteLast();
+      if(key==='ok') return addCode();
+      addDigit(key);
+    });
+    document.getElementById('grid').appendChild(btn);
+  });
+
+  document.getElementById('minus').addEventListener('click',function(){ updateQty(-1); });
+  document.getElementById('plus').addEventListener('click',function(){ updateQty(1); });
+  elSubmit.addEventListener('click',submitOrder);
+  elOpenComment.addEventListener('click',openComment);
+  elCloseComment.addEventListener('click',closeComment);
+  elSaveComment.addEventListener('click',saveComment);
+  elModal.addEventListener('click',function(e){ if(e.target===elModal) closeComment(); });
+
+  syncUi();
 })();
 </script>
 </body>
-</html>`}
-    />
-  );
-}
+</html>
