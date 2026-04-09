@@ -205,7 +205,7 @@
     width:100%;
     background:linear-gradient(90deg,#93c5fd 0%,#2563eb 100%);
     transform-origin:left center;
-    animation:autoOkLine 1.5s linear forwards;
+    animation:autoOkLine 1s linear forwards;
   }
 
   @keyframes autoOkLine{
@@ -636,7 +636,7 @@ function scheduleAutoAdd(){
 
   autoAddTimer = setTimeout(()=>{
     addCode(true);
-  }, 1500);
+  }, 1000);
 }
 
 function renderItems(){
@@ -753,13 +753,13 @@ function changeIndex(index,delta){
 async function send(){
   if(!rows.length) return alert('Добавь товар');
 
-  const lines = rows.map(r => r.code + '\\t' + r.qty);
+  const lines = rows.map(r => r.code + '\t' + r.qty);
   const comment = (elComment.value || '').trim();
 
-  let fullText = lines.join('\\n');
+  let fullText = lines.join('\n');
 
   if(comment){
-    fullText += '\\n\\nКомментарий: ' + comment;
+    fullText += '\n\nКомментарий: ' + comment;
   }
 
   const res = await fetch('/.netlify/functions/send', {
