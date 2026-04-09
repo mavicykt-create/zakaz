@@ -594,10 +594,6 @@ async function loadPrices(){
 function getPrice(code){
   const p = PRODUCTS[code];
   return p ? Number(p.price || 0) : 0;
-function getName(code){
-  const p = PRODUCTS[code];
-  return p && p.description ? p.description : '';
-}
 }
 
 function hasProduct(code){
@@ -661,7 +657,6 @@ function renderItems(){
     div.innerHTML =
       '<div>' +
   '<div class="item-row-code">' + r.code + '</div>' +
-  '<div class="item-row-sub">' + getName(r.code) + '</div>' +
   '<div class="item-row-sub">' + price.toLocaleString('ru-RU') + ' ₽ × ' + r.qty + ' = ' + lineSum.toLocaleString('ru-RU') + ' ₽</div>' +
 '</div>' +
       '<div class="item-row-qty">' + r.qty + '</div>' +
