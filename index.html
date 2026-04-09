@@ -7,36 +7,30 @@
 
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-body{margin:0;background:#f5f5f7;font-family:-apple-system}
-
+body{margin:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;color:#111827}
 .wrap{max-width:420px;margin:0 auto;padding:10px}
-.card{background:#fff;border-radius:28px;padding:16px}
-
-.head{display:flex;justify-content:space-between;margin-bottom:10px}
-.title{font-size:24px;font-weight:700}
-
-.badge{padding:10px 14px;border-radius:16px;background:#eef2f7}
+.card{background:#fff;border-radius:28px;padding:16px;box-shadow:0 18px 50px rgba(17,24,39,.08)}
+.head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:10px}
+.title{font-size:24px;font-weight:700;letter-spacing:-0.03em}
+.badge{padding:10px 14px;border-radius:16px;background:#eef2f7;border:0}
 .badge.dark{background:#111;color:#fff;cursor:pointer}
-
-.display{
-  font-size:42px;
-  text-align:center;
-  margin:14px 0;
-  font-family:monospace;
-  letter-spacing:10px;
-}
-
+.display{font-size:42px;text-align:center;margin:14px 0;font-family:monospace;letter-spacing:10px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.key{height:70px;border-radius:18px;font-size:26px;border:0}
+.key{height:70px;border-radius:18px;font-size:26px;border:0;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.05);color:#2563eb}
 .ok{background:#111;color:#fff}
-
-.submit{margin-top:14px;width:100%;height:56px;border-radius:18px;background:#111;color:#fff}
-
+.sumline,.feedstatus{margin-top:10px;font-weight:600}
+.feedstatus{font-size:13px;color:#6b7280;font-weight:500}
+.submit{margin-top:14px;width:100%;height:56px;border-radius:18px;background:#111;color:#fff;border:0;font-size:18px;font-weight:700}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:flex-end}
 .modal.open{display:flex}
-.sheet{background:#fff;width:100%;border-radius:20px;padding:16px}
-
-.item{display:flex;justify-content:space-between;margin:10px 0}
+.sheet{background:#fff;width:100%;border-radius:20px 20px 0 0;padding:16px;max-height:70vh;overflow:auto}
+.item{display:flex;justify-content:space-between;align-items:center;margin:10px 0;padding:10px 0;border-bottom:1px solid #eee}
+.item-main{display:flex;flex-direction:column;gap:4px}
+.item-code{font-weight:700}
+.item-price{font-size:13px;color:#6b7280}
+.item-controls{display:flex;align-items:center;gap:8px}
+.item-controls button{width:34px;height:34px;border-radius:10px;border:0}
+.msg{display:none;background:#ecfdf5;color:#047857;border-radius:16px;padding:12px 14px;margin-top:12px;font-weight:600}
 </style>
 </head>
 
@@ -53,9 +47,11 @@ body{margin:0;background:#f5f5f7;font-family:-apple-system}
 
 <div class="grid" id="grid"></div>
 
-<div style="margin-top:10px;font-weight:600">Сумма: <span id="sum">0 ₽</span></div>
+<div class="sumline">Сумма: <span id="sum">0 ₽</span></div>
+<div class="feedstatus" id="feedStatus">Загрузка цен…</div>
 
 <button class="submit" id="submit">Отправить заявку</button>
+<div class="msg" id="msg">Заявка отправлена</div>
 
 </div>
 </div>
@@ -71,18 +67,41 @@ body{margin:0;background:#f5f5f7;font-family:-apple-system}
 <script>
 let rows=[];
 let current='';
+let PRODUCTS={};
 
 const elDisplay=document.getElementById('display');
 const elTotal=document.getElementById('total');
 const elSum=document.getElementById('sum');
+const elMsg=document.getElementById('msg');
+const elFeedStatus=document.getElementById('feedStatus');
 
 function beep(freq){
-  const ctx=new (window.AudioContext||window.webkitAudioContext)();
-  const o=ctx.createOscillator();
-  const g=ctx.createGain();
-  o.frequency.value=freq;
-  o.connect(g); g.connect(ctx.destination);
-  o.start(); o.stop(ctx.currentTime+0.05);
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+    o.frequency.value=freq;
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime+0.05);
+  }catch(e){}
+}
+
+async function loadPrices(){
+  try{
+    const res = await fetch('/.netlify/functions/products');
+    if(!res.ok) throw new Error('feed');
+    const data = await res.json();
+    PRODUCTS = data || {};
+    elFeedStatus.textContent = 'Цены загружены';
+    sync();
+  }catch(e){
+    elFeedStatus.textContent = 'Цены не загружены';
+  }
+}
+
+function getPrice(code){
+  const p = PRODUCTS[code];
+  return p ? Number(p.price || 0) : 0;
 }
 
 function sync(){
@@ -90,13 +109,14 @@ function sync(){
   elTotal.textContent=rows.reduce((s,r)=>s+r.qty,0);
 
   let sum=0;
-  rows.forEach(r=>sum+=r.qty*0);
-  elSum.textContent=sum+' ₽';
+  rows.forEach(r=>sum += r.qty * getPrice(r.code));
+  elSum.textContent=sum.toLocaleString('ru-RU')+' ₽';
 
   renderItems();
 }
 
 function addDigit(d){
+  elMsg.style.display='none';
   if(current.length<4){current+=d; sync();}
 }
 
@@ -115,16 +135,25 @@ function addCode(){
 function renderItems(){
   const el=document.getElementById('itemsList');
   el.innerHTML='';
+  if(!rows.length){
+    el.innerHTML='<div style="color:#6b7280">Пока нет позиций</div>';
+    return;
+  }
   rows.forEach((r,i)=>{
+    const price = getPrice(r.code);
+    const lineSum = price * r.qty;
     const div=document.createElement('div');
     div.className='item';
-    div.innerHTML=`
-      ${r.code}
-      <div>
-        <button onclick="change(${i},-1)">-</button>
-        ${r.qty}
-        <button onclick="change(${i},1)">+</button>
-      </div>`;
+    div.innerHTML=
+      '<div class="item-main">' +
+        '<div class="item-code">'+r.code+'</div>' +
+        '<div class="item-price">'+price.toLocaleString('ru-RU')+' ₽ × '+r.qty+' = '+lineSum.toLocaleString('ru-RU')+' ₽</div>' +
+      '</div>' +
+      '<div class="item-controls">' +
+        '<button onclick="change('+i+',-1)">−</button>' +
+        '<div>'+r.qty+'</div>' +
+        '<button onclick="change('+i+',1)">+</button>' +
+      '</div>';
     el.appendChild(div);
   });
 }
@@ -139,15 +168,30 @@ function change(i,d){
 async function send(){
   if(!rows.length) return alert('Добавь товар');
 
-  const text = rows.map(r=>`${r.code} - ${r.qty}`).join('\\n');
+  let total = 0;
+  const text = rows.map(r=>{
+    const price = getPrice(r.code);
+    const lineSum = price * r.qty;
+    total += lineSum;
+    return r.code+' - '+r.qty+' шт - '+price.toLocaleString('ru-RU')+' ₽ = '+lineSum.toLocaleString('ru-RU')+' ₽';
+  }).join('\n');
 
-  await fetch('/.netlify/functions/send',{
+  const fullText = 'Новая заявка\n\n'+text+'\n\nИтого: '+total.toLocaleString('ru-RU')+' ₽';
+
+  const res = await fetch('/.netlify/functions/send',{
     method:'POST',
-    body:JSON.stringify({text})
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text:fullText})
   });
 
-  alert('Отправлено');
+  if(!res.ok){
+    alert('Не удалось отправить заявку');
+    return;
+  }
+
+  elMsg.style.display='block';
   rows=[];
+  current='';
   sync();
 }
 
@@ -168,6 +212,7 @@ document.getElementById('submit').onclick=send;
 document.getElementById('openItems').onclick=()=>document.getElementById('itemsModal').classList.add('open');
 document.getElementById('closeItems').onclick=()=>document.getElementById('itemsModal').classList.remove('open');
 
+loadPrices();
 sync();
 </script>
 
