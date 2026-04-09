@@ -122,6 +122,7 @@
     border:1px solid var(--line);
     box-shadow:var(--shadow-md);
     margin-bottom:14px;
+    transition:.18s ease;
   }
 
   .preview{
@@ -179,6 +180,7 @@
   }
 
   .display{
+    position:relative;
     margin-bottom:14px;
     padding:22px 16px;
     border-radius:30px;
@@ -190,6 +192,37 @@
     font-weight:700;
     letter-spacing:.22em;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+    transition:.18s ease;
+    overflow:hidden;
+  }
+
+  .display.auto-ok::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    height:3px;
+    width:100%;
+    background:linear-gradient(90deg,#93c5fd 0%,#2563eb 100%);
+    transform-origin:left center;
+    animation:autoOkLine 1.5s linear forwards;
+  }
+
+  @keyframes autoOkLine{
+    from{transform:scaleX(0)}
+    to{transform:scaleX(1)}
+  }
+
+  .display.invalid{
+    border-color:#fecaca;
+    background:linear-gradient(180deg,#fff5f5 0%,#ffecec 100%);
+    color:#dc2626;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 0 0 3px rgba(220,38,38,.08);
+  }
+
+  .panel.invalid{
+    border-color:#fecaca;
+    background:#fff5f5;
   }
 
   .grid{
@@ -209,6 +242,7 @@
     font-weight:700;
     cursor:pointer;
     box-shadow:0 10px 24px rgba(15,23,42,.05);
+    transition:.16s ease;
   }
 
   .key.ok{
@@ -216,6 +250,10 @@
     color:#fff;
     border-color:var(--primary);
     font-size:24px;
+  }
+
+  .key.ok.dimmed{
+    opacity:.45;
   }
 
   .meta{
@@ -451,7 +489,7 @@
       </div>
     </div>
 
-    <div class="panel preview">
+    <div class="panel preview" id="previewPanel">
       <div class="preview-code preview-empty" id="previewCode"></div>
       <div class="preview-qty" id="previewQty"></div>
       <div class="actions" id="previewActions" style="display:none;">
@@ -514,6 +552,8 @@ document.addEventListener('dblclick', function(e){ e.preventDefault(); }, { pass
 let rows = [];
 let current = '';
 let PRODUCTS = {};
+let autoAddTimer = null;
+let invalidTimer = null;
 
 const elDisplay = document.getElementById('display');
 const elPositions = document.getElementById('positions');
@@ -521,6 +561,7 @@ const elTotal = document.getElementById('total');
 const elPreviewCode = document.getElementById('previewCode');
 const elPreviewQty = document.getElementById('previewQty');
 const elPreviewActions = document.getElementById('previewActions');
+const elPreviewPanel = document.getElementById('previewPanel');
 const elSum = document.getElementById('sum');
 const elMsg = document.getElementById('message');
 const elFeedStatus = document.getElementById('feedStatus');
@@ -553,6 +594,49 @@ async function loadPrices(){
 function getPrice(code){
   const p = PRODUCTS[code];
   return p ? Number(p.price || 0) : 0;
+}
+
+function hasProduct(code){
+  return !!PRODUCTS[code];
+}
+
+function clearAutoAdd(){
+  if(autoAddTimer){
+    clearTimeout(autoAddTimer);
+    autoAddTimer = null;
+  }
+  elDisplay.classList.remove('auto-ok');
+  document.querySelector('.key.ok')?.classList.remove('dimmed');
+}
+
+function showInvalidCode(){
+  clearTimeout(invalidTimer);
+  clearAutoAdd();
+
+  elDisplay.classList.add('invalid');
+  elPreviewPanel.classList.add('invalid');
+
+  invalidTimer = setTimeout(()=>{
+    current = '';
+    elDisplay.classList.remove('invalid');
+    elPreviewPanel.classList.remove('invalid');
+    sync();
+  }, 900);
+}
+
+function scheduleAutoAdd(){
+  clearAutoAdd();
+  if(current.length !== 4) return;
+
+  elDisplay.classList.remove('invalid');
+  elPreviewPanel.classList.remove('invalid');
+
+  elDisplay.classList.add('auto-ok');
+  document.querySelector('.key.ok')?.classList.add('dimmed');
+
+  autoAddTimer = setTimeout(()=>{
+    addCode(true);
+  }, 1500);
 }
 
 function renderItems(){
@@ -606,10 +690,19 @@ function sync(){
   elCommentState.textContent = (elComment.value || '').trim() ? 'добавлен' : 'нет';
 
   renderItems();
+
+  if(current.length === 4){
+    scheduleAutoAdd();
+  }else{
+    clearAutoAdd();
+  }
 }
 
 function addDigit(d){
   elMsg.style.display = 'none';
+  elDisplay.classList.remove('invalid');
+  elPreviewPanel.classList.remove('invalid');
+
   if(current.length < 4){
     current += d;
     sync();
@@ -617,19 +710,35 @@ function addDigit(d){
 }
 
 function deleteLast(){
+  clearAutoAdd();
   current = current.slice(0,-1);
+  elDisplay.classList.remove('invalid');
+  elPreviewPanel.classList.remove('invalid');
   sync();
 }
 
-function addCode(){
-  beep(820);
+function addCode(isAuto){
+  clearAutoAdd();
+
   if(current.length !== 4) return;
 
-  const found = rows.find(r => r.code === current);
+  const code = current;
+
+  if(!hasProduct(code)){
+    beep(420);
+    showInvalidCode();
+    return;
+  }
+
+  beep(isAuto ? 760 : 820);
+
+  const found = rows.find(r => r.code === code);
   if(found) found.qty += 1;
-  else rows.push({code: current, qty: 1});
+  else rows.push({code: code, qty: 1});
 
   current = '';
+  elDisplay.classList.remove('invalid');
+  elPreviewPanel.classList.remove('invalid');
   sync();
 }
 
@@ -644,20 +753,13 @@ function changeIndex(index,delta){
 async function send(){
   if(!rows.length) return alert('Добавь товар');
 
-  let total = 0;
-  const lines = rows.map(r=>{
-    const price = getPrice(r.code);
-    const lineSum = price * r.qty;
-    total += lineSum;
-    return r.code + '\\t' + r.qty;
-  });
-
+  const lines = rows.map(r => r.code + '\\t' + r.qty);
   const comment = (elComment.value || '').trim();
-  let fullText = 'Артикул\\tКоличество\\n' + lines.join('\\n') + '\\n\\n' +
-    'Сумма: ' + total.toLocaleString('ru-RU') + ' ₽';
+
+  let fullText = lines.join('\\n');
 
   if(comment){
-    fullText += '\\nКомментарий: ' + comment;
+    fullText += '\\n\\nКомментарий: ' + comment;
   }
 
   const res = await fetch('/.netlify/functions/send', {
@@ -684,7 +786,7 @@ async function send(){
   b.textContent = k === 'del' ? '⌫' : k === 'ok' ? 'OK' : k;
   b.onclick = ()=>{
     if(k === 'del') deleteLast();
-    else if(k === 'ok') addCode();
+    else if(k === 'ok') addCode(false);
     else addDigit(k);
   };
   document.getElementById('grid').appendChild(b);
