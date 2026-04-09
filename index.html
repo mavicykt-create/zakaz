@@ -209,19 +209,22 @@ async function send(){
   if(!rows.length) return alert('Добавь товар');
 
   let total = 0;
-  const text = rows.map(r=>{
+
+  const lines = rows.map(r => {
     const price = getPrice(r.code);
     const lineSum = price * r.qty;
     total += lineSum;
-    return r.code + ' - ' + r.qty + ' шт - ' + price.toLocaleString('ru-RU') + ' ₽ = ' + lineSum.toLocaleString('ru-RU') + ' ₽';
-  }).join('\\n');
+    return r.code + '\t' + r.qty;
+  });
 
   const comment = (elComment.value || '').trim();
-  const fullText =
-    'Новая заявка\\n\\n' +
-    text +
-    '\\n\\nИтого: ' + total.toLocaleString('ru-RU') + ' ₽' +
-    (comment ? '\\n\\nКомментарий: ' + comment : '');
+
+  let fullText = lines.join('\n') + '\n\n' +
+    'Сумма: ' + total.toLocaleString('ru-RU') + ' ₽';
+
+  if(comment){
+    fullText += '\nКомментарий: ' + comment;
+  }
 
   const res = await fetch('/.netlify/functions/send', {
     method: 'POST',
