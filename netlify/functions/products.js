@@ -25,10 +25,7 @@ export async function handler() {
       const price = parseFloat(rawPrice.replace(',', '.').replace(/[^\d.]/g, ''));
 
       if (!article || Number.isNaN(price)) continue;
-      const descMatch = item.match(/<g:description>([\s\S]*?)<\/g:description>/i);
-const description = descMatch ? descMatch[1].trim() : '';
-
-products[article] = { price, description };
+     products[article] = { price };
     }
 
     return {
