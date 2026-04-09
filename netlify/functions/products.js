@@ -2,8 +2,12 @@ export async function handler() {
   try {
     const feedUrl = 'https://milku.ru/site1/export-google-whatsp/';
     const res = await fetch(feedUrl);
+
     if (!res.ok) {
-      return { statusCode: 500, body: JSON.stringify({ error: 'feed fetch failed' }) };
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'feed fetch failed' })
+      };
     }
 
     const xml = await res.text();
