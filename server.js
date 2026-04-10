@@ -65,19 +65,24 @@ async function loadProductsFeed() {
   for (const item of itemMatches) {
     const idMatch = item.match(/<g:id>([\s\S]*?)<\/g:id>/i);
     const priceMatch = item.match(/<g:price>([\s\S]*?)<\/g:price>/i);
-    const descMatch = item.match(/<g:description>([\s\S]*?)<\/g:description>/i);
+   const descMatch = item.match(/<g:description>([\s\S]*?)<\/g:description>/i);
+const imageMatch = item.match(/<g:image_link>([\s\S]*?)<\/g:image_link>/i);
 
-    if (!idMatch || !priceMatch) continue;
+if (!idMatch || !priceMatch) continue;
 
-    const article = normalizeFeedArticle(idMatch[1]);
-    const rawPrice = String(priceMatch[1]).trim();
-    const description = descMatch ? String(descMatch[1]).trim() : '';
-    const price = parseFloat(rawPrice.replace(',', '.').replace(/[^\d.]/g, ''));
+const article = normalizeFeedArticle(idMatch[1]);
+const rawPrice = String(priceMatch[1]).trim();
+const description = descMatch ? String(descMatch[1]).trim() : '';
+const image = imageMatch ? String(imageMatch[1]).trim() : '';
+const price = parseFloat(rawPrice.replace(',', '.').replace(/[^\d.]/g, ''));
 
-    if (!article || Number.isNaN(price)) continue;
+if (!article || Number.isNaN(price)) continue;
 
-    products[article] = { price, description };
-  }
+products[article] = {
+  price,
+  description,
+  image
+};
 
   return products;
 }
