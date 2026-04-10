@@ -586,7 +586,7 @@ function beep(freq){
 
 async function loadPrices(){
   try{
-    const res = await fetch('/.netlify/functions/products', { cache: 'no-store' });
+    const res = await fetch('/api/products', { cache: 'no-store' });
     if(!res.ok) throw new Error('feed');
     PRODUCTS = await res.json();
     elFeedStatus.textContent = 'Цены загружены';
@@ -790,7 +790,7 @@ async function send(){
   }
 
   try{
-    const res = await fetch('/.netlify/functions/send', {
+    const res = await fetch('/api/send', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ text: fullText })
