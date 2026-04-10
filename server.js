@@ -256,19 +256,12 @@ app.patch('/api/orders/:id/status', basicAuth, async (req, res, next) => {
   }
 });
 
-app.use('/admin', basicAuth, express.static(publicDir));
+app.use('/superadmin', basicAuth, express.static(publicDir));
 app.use('/public', express.static(publicDir));
+app.use(express.static(publicDir));
 
 app.get('/', (_req, res) => {
-  res.json({
-    ok: true,
-    service: 'zakaz-backend',
-    health: '/health',
-    admin: '/admin',
-    products: '/api/products',
-    createOrderLegacy: 'POST /api/order',
-    createOrder: 'POST /api/orders'
-  });
+  res.sendFile(path.join(publicDir, 'index.html'));
 });
 
 app.use((error, _req, res, _next) => {
