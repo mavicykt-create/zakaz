@@ -5,76 +5,129 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Superadmin</title>
   <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --dark: #111827;
+      --green-bg: #dcfce7;
+      --green-text: #166534;
+      --blue-bg: #dbeafe;
+      --blue-text: #1d4ed8;
+      --yellow-bg: #fef3c7;
+      --yellow-text: #92400e;
+      --red-bg: #fee2e2;
+      --red-text: #b91c1c;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f3f4f6;
-      color: #111827;
+      background: var(--bg);
+      color: var(--text);
     }
 
     .wrap {
-      max-width: 1100px;
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 24px;
+      padding: 20px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
     }
 
     h1 {
-      margin: 0 0 20px;
+      margin: 0;
       font-size: 32px;
     }
 
-    .topbar {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 16px 18px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-      min-width: 180px;
-    }
-
-    .card small {
-      display: block;
-      color: #6b7280;
-      margin-bottom: 6px;
-      font-size: 13px;
-    }
-
-    .card strong {
-      font-size: 28px;
+    .notice {
+      display: none;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--green-bg);
+      color: var(--green-text);
+      font-weight: 700;
+      box-shadow: var(--shadow);
     }
 
     .toolbar {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
       gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
+      margin-bottom: 18px;
     }
 
     .toolbar input,
-    .toolbar select,
-    .toolbar button {
-      padding: 12px 14px;
+    .toolbar button,
+    .toolbar label {
+      height: 46px;
       border-radius: 12px;
-      border: 1px solid #d1d5db;
       font-size: 15px;
     }
 
     .toolbar input {
-      min-width: 260px;
-      flex: 1;
+      padding: 0 14px;
+      background: #fff;
+      border: 1px solid var(--line);
     }
 
     .toolbar button {
-      cursor: pointer;
-      background: #111827;
-      color: white;
+      padding: 0 16px;
       border: 0;
+      cursor: pointer;
+      background: var(--dark);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .toolbar label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      background: #fff;
+      border: 1px solid var(--line);
+      white-space: nowrap;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .stat strong {
+      font-size: 28px;
     }
 
     .orders {
@@ -84,124 +137,221 @@
     }
 
     .order {
-      background: white;
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border-left: 6px solid #dbeafe;
+    }
+
+    .order.done {
+      border-left-color: #dcfce7;
+      opacity: 0.92;
+    }
+
+    .order.cancelled {
+      border-left-color: #fee2e2;
+      opacity: 0.88;
     }
 
     .order-head {
       display: flex;
       justify-content: space-between;
       gap: 12px;
+      align-items: flex-start;
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
       flex-wrap: wrap;
-      margin-bottom: 14px;
     }
 
     .order-title {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 700;
+      margin-bottom: 6px;
     }
 
     .muted {
-      color: #6b7280;
+      color: var(--muted);
       font-size: 14px;
     }
 
-    .status {
-      display: inline-block;
-      padding: 8px 12px;
+    .head-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .order-sum {
+      background: var(--blue-bg);
+      color: var(--blue-text);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 16px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .status-badge {
+      padding: 10px 14px;
       border-radius: 999px;
       font-size: 14px;
       font-weight: 700;
-      text-transform: uppercase;
+      white-space: nowrap;
     }
 
-    .status-new { background: #dbeafe; color: #1d4ed8; }
-    .status-processing { background: #fef3c7; color: #b45309; }
-    .status-done { background: #dcfce7; color: #15803d; }
-    .status-cancelled { background: #fee2e2; color: #b91c1c; }
+    .status-new {
+      background: var(--yellow-bg);
+      color: var(--yellow-text);
+    }
 
-    .order-grid {
+    .status-done {
+      background: var(--green-bg);
+      color: var(--green-text);
+    }
+
+    .status-cancelled {
+      background: var(--red-bg);
+      color: var(--red-text);
+    }
+
+    .order-body {
       display: grid;
-      grid-template-columns: 1.3fr 1fr;
-      gap: 18px;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 16px;
+      padding: 18px;
     }
 
-    .items {
-      border: 1px solid #e5e7eb;
+    .box {
+      border: 1px solid var(--line);
       border-radius: 14px;
       overflow: hidden;
+      background: #fff;
     }
 
-    .item-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
+    .box-title {
       padding: 12px 14px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .item-row:last-child {
-      border-bottom: 0;
-    }
-
-    .item-article {
       font-weight: 700;
-      font-size: 18px;
-    }
-
-    .item-qty {
-      font-weight: 700;
-      font-size: 18px;
-    }
-
-    .meta-box {
-      border: 1px solid #e5e7eb;
-      border-radius: 14px;
-      padding: 14px;
+      border-bottom: 1px solid var(--line);
       background: #fafafa;
     }
 
-    .meta-box div {
-      margin-bottom: 10px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
     }
 
-    .meta-box div:last-child {
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #111;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .article {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.02em;
+    }
+
+    .qty {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .meta {
+      padding: 14px;
+    }
+
+    .meta-row {
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    .meta-row:last-child {
       margin-bottom: 0;
+    }
+
+    .meta-row strong {
+      display: inline-block;
+      min-width: 120px;
+    }
+
+    .raw {
+      white-space: pre-wrap;
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      margin-top: 8px;
     }
 
     .actions {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
       margin-top: 14px;
     }
 
-    .actions button {
-      padding: 10px 12px;
+    .btn-copy,
+    .btn-cancel,
+    .btn-restore {
       border: 0;
-      border-radius: 10px;
-      cursor: pointer;
+      border-radius: 12px;
+      padding: 12px 14px;
       font-weight: 700;
+      cursor: pointer;
     }
 
-    .btn-new { background: #dbeafe; color: #1d4ed8; }
-    .btn-processing { background: #fef3c7; color: #b45309; }
-    .btn-done { background: #dcfce7; color: #15803d; }
-    .btn-cancelled { background: #fee2e2; color: #b91c1c; }
+    .btn-copy {
+      background: #111827;
+      color: #fff;
+    }
+
+    .btn-copy.ok {
+      background: #166534;
+    }
+
+    .btn-cancel {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .btn-restore {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
 
     .empty {
-      background: white;
-      border-radius: 16px;
+      background: #fff;
+      border-radius: var(--radius);
       padding: 30px;
       text-align: center;
-      color: #6b7280;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      color: var(--muted);
+      box-shadow: var(--shadow);
     }
 
-    @media (max-width: 800px) {
-      .order-grid {
+    @media (max-width: 980px) {
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .order-body {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
         grid-template-columns: 1fr;
       }
     }
@@ -209,33 +359,42 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Заказы</h1>
-
-    <div class="topbar">
-      <div class="card">
-        <small>Всего заказов</small>
-        <strong id="countAll">0</strong>
-      </div>
-      <div class="card">
-        <small>Новые</small>
-        <strong id="countNew">0</strong>
-      </div>
-      <div class="card">
-        <small>Всего товаров</small>
-        <strong id="countQty">0</strong>
-      </div>
+    <div class="top">
+      <h1>Заказы</h1>
+      <div id="newNotice" class="notice">Поступил новый заказ</div>
     </div>
 
     <div class="toolbar">
-      <input type="text" id="search" placeholder="Поиск по артикулу, ID, комментарию..." />
-      <select id="statusFilter">
-        <option value="">Все статусы</option>
-        <option value="new">Новые</option>
-        <option value="processing">В работе</option>
-        <option value="done">Готово</option>
-        <option value="cancelled">Отменено</option>
-      </select>
-      <button id="refreshBtn">Обновить</button>
+      <input id="search" type="text" placeholder="Поиск по артикулу, ID, комментарию..." />
+      <button id="refreshBtn" type="button">Обновить сейчас</button>
+      <button id="copyFirstBtn" type="button">Копировать первый новый</button>
+      <label>
+        <input id="onlyNew" type="checkbox" />
+        Только новые
+      </label>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <small>Всего заказов</small>
+        <strong id="statOrders">0</strong>
+      </div>
+      <div class="stat">
+        <small>Новые</small>
+        <strong id="statNew">0</strong>
+      </div>
+      <div class="stat">
+        <small>Обработаны</small>
+        <strong id="statDone">0</strong>
+      </div>
+      <div class="stat">
+        <small>Отменены</small>
+        <strong id="statCancelled">0</strong>
+      </div>
+      <div class="stat">
+        <small>Последнее обновление</small>
+        <strong id="statUpdated" style="font-size:18px">—</strong>
+      </div>
     </div>
 
     <div id="orders" class="orders"></div>
@@ -243,6 +402,9 @@
 
   <script>
     let allOrders = [];
+    let productsMap = {};
+    let lastTopOrderId = null;
+    let audioUnlocked = false;
 
     function escapeHtml(value) {
       return String(value ?? '')
@@ -253,140 +415,360 @@
         .replaceAll("'", '&#039;');
     }
 
-    function statusClass(status) {
-      return 'status-' + (status || 'new');
+    function formatMoney(value) {
+      return Number(value || 0).toLocaleString('ru-RU') + ' ₽';
     }
 
-    function statusText(status) {
-      const map = {
-        new: 'Новый',
-        processing: 'В работе',
-        done: 'Готово',
-        cancelled: 'Отменён'
-      };
-      return map[status] || status || 'Новый';
+    function formatDate(value) {
+      try {
+        return new Date(value).toLocaleString('ru-RU');
+      } catch {
+        return value || '—';
+      }
+    }
+
+    function getStatusText(status) {
+      if (status === 'done') return 'Обработан';
+      if (status === 'cancelled') return 'Отмена';
+      return 'Новый';
+    }
+
+    function getOrderExcelText(order) {
+      return (order.items || [])
+        .map(item => `${item.article}\t${item.quantity}`)
+        .join('\n');
+    }
+
+    async function copyText(text, button) {
+      try {
+        await navigator.clipboard.writeText(text);
+        const old = button.textContent;
+        button.textContent = 'Скопировано';
+        button.classList.add('ok');
+        setTimeout(() => {
+          button.textContent = old;
+          button.classList.remove('ok');
+        }, 1200);
+      } catch {
+        alert('Не удалось скопировать');
+      }
+    }
+
+    function unlockAudio() {
+      audioUnlocked = true;
+    }
+
+    function playNewOrderSound() {
+      if (!audioUnlocked) return;
+
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+
+        const now = ctx.currentTime;
+
+        const o1 = ctx.createOscillator();
+        const g1 = ctx.createGain();
+        o1.type = 'sine';
+        o1.frequency.value = 880;
+        g1.gain.setValueAtTime(0.0001, now);
+        g1.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+        g1.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+        o1.connect(g1);
+        g1.connect(ctx.destination);
+        o1.start(now);
+        o1.stop(now + 0.18);
+
+        const o2 = ctx.createOscillator();
+        const g2 = ctx.createGain();
+        o2.type = 'sine';
+        o2.frequency.value = 1175;
+        g2.gain.setValueAtTime(0.0001, now + 0.12);
+        g2.gain.exponentialRampToValueAtTime(0.07, now + 0.14);
+        g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.30);
+        o2.connect(g2);
+        g2.connect(ctx.destination);
+        o2.start(now + 0.12);
+        o2.stop(now + 0.30);
+      } catch {}
+    }
+
+    async function loadProducts() {
+      try {
+        const res = await fetch('/api/products', { cache: 'no-store' });
+        const data = await res.json();
+        productsMap = data && typeof data === 'object' ? data : {};
+      } catch {
+        productsMap = {};
+      }
+    }
+
+    function calcOrderSum(order) {
+      let total = 0;
+
+      for (const item of (order.items || [])) {
+        const product = productsMap[item.article];
+        const price = product ? Number(product.price || 0) : 0;
+        total += price * Number(item.quantity || 0);
+      }
+
+      return total;
     }
 
     async function loadOrders() {
-      const res = await fetch('/api/orders');
+      const res = await fetch('/api/orders', { cache: 'no-store' });
       const data = await res.json();
 
-      allOrders = Array.isArray(data.orders) ? data.orders : [];
+      const orders = Array.isArray(data.orders) ? data.orders : [];
+
+      if (orders.length > 0) {
+        const topId = orders[0].id;
+
+        if (lastTopOrderId !== null && topId !== lastTopOrderId) {
+          const notice = document.getElementById('newNotice');
+          notice.style.display = 'block';
+          playNewOrderSound();
+
+          setTimeout(() => {
+            notice.style.display = 'none';
+          }, 3000);
+        }
+
+        lastTopOrderId = topId;
+      }
+
+      allOrders = orders;
       render();
     }
 
     function render() {
-      const search = document.getElementById('search').value.trim().toLowerCase();
-      const statusFilter = document.getElementById('statusFilter').value;
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const onlyNew = document.getElementById('onlyNew').checked;
 
-      const filtered = allOrders.filter(order => {
-        const haystack = [
-          order.id,
-          order.comment,
-          order.customerName,
-          order.customerPhone,
-          order.rawText,
-          ...(order.items || []).map(i => i.article)
-        ].join(' ').toLowerCase();
+  // 🔥 СОРТИРОВКА (главное изменение)
+  const sorted = [...allOrders].sort((a, b) => {
+    const priority = {
+      new: 0,
+      done: 1,
+      cancelled: 2
+    };
 
-        const statusOk = !statusFilter || order.status === statusFilter;
-        const searchOk = !search || haystack.includes(search);
+    const pa = priority[a.status] ?? 3;
+    const pb = priority[b.status] ?? 3;
 
-        return statusOk && searchOk;
-      });
+    // сначала по статусу
+    if (pa !== pb) return pa - pb;
 
-      document.getElementById('countAll').textContent = allOrders.length;
-      document.getElementById('countNew').textContent = allOrders.filter(o => o.status === 'new').length;
-      document.getElementById('countQty').textContent = allOrders.reduce((sum, o) => sum + (o.totalQuantity || 0), 0);
+    // потом по дате (новые сверху)
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
 
-      const root = document.getElementById('orders');
-      root.innerHTML = '';
+  const filtered = sorted.filter(order => {
+    const haystack = [
+      order.id,
+      order.comment,
+      order.customerName,
+      order.customerPhone,
+      order.rawText,
+      ...(order.items || []).map(i => i.article)
+    ].join(' ').toLowerCase();
 
-      if (!filtered.length) {
-        root.innerHTML = '<div class="empty">Заказов пока нет</div>';
-        return;
-      }
+    if (onlyNew && order.status !== 'new') return false;
+    return !q || haystack.includes(q);
+  });
 
-      filtered.forEach(order => {
-        const div = document.createElement('div');
-        div.className = 'order';
+  document.getElementById('statOrders').textContent = allOrders.length;
+  document.getElementById('statNew').textContent = allOrders.filter(o => o.status === 'new').length;
+  document.getElementById('statDone').textContent = allOrders.filter(o => o.status === 'done').length;
+  document.getElementById('statCancelled').textContent = allOrders.filter(o => o.status === 'cancelled').length;
+  document.getElementById('statUpdated').textContent = new Date().toLocaleTimeString('ru-RU');
 
-        const itemsHtml = (order.items || []).map(item => `
-          <div class="item-row">
-            <div class="item-article">${escapeHtml(item.article)}</div>
-            <div class="item-qty">× ${escapeHtml(item.quantity)}</div>
+  const root = document.getElementById('orders');
+  root.innerHTML = '';
+
+  if (!filtered.length) {
+    root.innerHTML = '<div class="empty">Заказов пока нет</div>';
+    return;
+  }
+
+  for (const order of filtered) {
+    const orderSum = calcOrderSum(order);
+
+    const itemsRows = (order.items || []).map(item => {
+      const product = productsMap[item.article];
+      const price = product ? Number(product.price || 0) : 0;
+      const lineSum = price * Number(item.quantity || 0);
+
+      return `
+        <tr>
+          <td class="article">${escapeHtml(item.article)}</td>
+          <td class="qty">${escapeHtml(item.quantity)}</td>
+          <td>${formatMoney(price)}</td>
+          <td>${formatMoney(lineSum)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const div = document.createElement('div');
+    div.className = `order ${escapeHtml(order.status || 'new')}`;
+
+    div.innerHTML = `
+      <div class="order-head">
+        <div>
+          <div class="order-title">Заказ #${escapeHtml(order.id)}</div>
+          <div class="muted">${escapeHtml(formatDate(order.createdAt))}</div>
+        </div>
+
+        <div class="head-right">
+          <div class="order-sum">Сумма: ${formatMoney(orderSum)}</div>
+          <div class="status-badge status-${escapeHtml(order.status || 'new')}">
+            ${escapeHtml(getStatusText(order.status))}
           </div>
-        `).join('');
+        </div>
+      </div>
 
-        div.innerHTML = `
-          <div class="order-head">
-            <div>
-              <div class="order-title">Заказ #${escapeHtml(order.id)}</div>
-              <div class="muted">${new Date(order.createdAt).toLocaleString()}</div>
+      <div class="order-body">
+        <div class="box">
+          <div class="box-title">Позиции</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Артикул</th>
+                <th>Количество</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsRows}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box">
+          <div class="box-title">Информация</div>
+          <div class="meta">
+            <div class="meta-row"><strong>Комментарий:</strong> ${escapeHtml(order.comment || '—')}</div>
+            <div class="meta-row"><strong>Клиент:</strong> ${escapeHtml(order.customerName || '—')}</div>
+            <div class="meta-row"><strong>Телефон:</strong> ${escapeHtml(order.customerPhone || '—')}</div>
+            <div class="meta-row"><strong>Позиций:</strong> ${escapeHtml(order.totalItems || 0)}</div>
+            <div class="meta-row"><strong>Количество:</strong> ${escapeHtml(order.totalQuantity || 0)}</div>
+            <div class="meta-row">
+              <strong>Текст заказа:</strong>
+              <div class="raw">${escapeHtml(order.rawText || '')}</div>
             </div>
-            <div>
-              <span class="status ${statusClass(order.status)}">${statusText(order.status)}</span>
+
+            <div class="actions">
+              <button class="btn-copy" data-copy-order="${order.id}">
+                Копировать в Excel
+              </button>
+
+              ${
+                order.status === 'cancelled'
+                  ? `<button class="btn-restore" data-restore-order="${order.id}">Вернуть</button>`
+                  : `<button class="btn-cancel" data-cancel-order="${order.id}">Отмена</button>`
+              }
             </div>
           </div>
+        </div>
+      </div>
+    `;
 
-          <div class="order-grid">
-            <div>
-              <div class="items">${itemsHtml}</div>
-              <div class="actions">
-                <button class="btn-new" data-id="${order.id}" data-status="new">Новый</button>
-                <button class="btn-processing" data-id="${order.id}" data-status="processing">В работе</button>
-                <button class="btn-done" data-id="${order.id}" data-status="done">Готово</button>
-                <button class="btn-cancelled" data-id="${order.id}" data-status="cancelled">Отменить</button>
-              </div>
-            </div>
-
-            <div class="meta-box">
-              <div><strong>Позиций:</strong> ${escapeHtml(order.totalItems || 0)}</div>
-              <div><strong>Количество:</strong> ${escapeHtml(order.totalQuantity || 0)}</div>
-              <div><strong>Комментарий:</strong> ${escapeHtml(order.comment || '—')}</div>
-              <div><strong>Клиент:</strong> ${escapeHtml(order.customerName || '—')}</div>
-              <div><strong>Телефон:</strong> ${escapeHtml(order.customerPhone || '—')}</div>
-              <div><strong>Raw:</strong><br><pre style="white-space:pre-wrap;margin:6px 0 0;font-family:inherit;">${escapeHtml(order.rawText || '')}</pre></div>
-            </div>
-          </div>
-        `;
-
-        root.appendChild(div);
-      });
-    }
-
-    async function updateStatus(id, status) {
-      const res = await fetch('/api/orders/' + id + '/status', {
+    root.appendChild(div);
+  }
+}
+    async function patchStatus(orderId, status) {
+      const res = await fetch('/api/orders/' + orderId + '/status', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data.success) {
-        alert(data.error || 'Не удалось сменить статус');
+        alert(data.error || 'Не удалось изменить статус');
+        return false;
+      }
+
+      return true;
+    }
+
+    document.addEventListener('click', unlockAudio, { once: true });
+    document.addEventListener('keydown', unlockAudio, { once: true });
+
+    document.getElementById('orders').addEventListener('click', async (e) => {
+      const btnCopy = e.target.closest('[data-copy-order]');
+      const btnCancel = e.target.closest('[data-cancel-order]');
+      const btnRestore = e.target.closest('[data-restore-order]');
+
+      if (btnCopy) {
+        const orderId = Number(btnCopy.dataset.copyOrder);
+        const order = allOrders.find(o => o.id === orderId);
+        if (!order) return;
+
+        const text = getOrderExcelText(order);
+        await copyText(text, btnCopy);
+
+        const ok = await patchStatus(orderId, 'done');
+        if (ok) {
+          await loadOrders();
+        }
+      }
+
+      if (btnCancel) {
+        const orderId = Number(btnCancel.dataset.cancelOrder);
+        const ok = await patchStatus(orderId, 'cancelled');
+        if (ok) {
+          await loadOrders();
+        }
+      }
+
+      if (btnRestore) {
+        const orderId = Number(btnRestore.dataset.restoreOrder);
+        const ok = await patchStatus(orderId, 'new');
+        if (ok) {
+          await loadOrders();
+        }
+      }
+    });
+
+    document.getElementById('copyFirstBtn').addEventListener('click', async (e) => {
+      const firstNew = allOrders.find(o => o.status === 'new');
+
+      if (!firstNew) {
+        alert('Новых заказов нет');
         return;
       }
 
-      await loadOrders();
-    }
+      const text = getOrderExcelText(firstNew);
+      await copyText(text, e.currentTarget);
 
-    document.getElementById('refreshBtn').addEventListener('click', loadOrders);
-    document.getElementById('search').addEventListener('input', render);
-    document.getElementById('statusFilter').addEventListener('change', render);
-
-    document.getElementById('orders').addEventListener('click', async (e) => {
-      const btn = e.target.closest('[data-id][data-status]');
-      if (!btn) return;
-
-      await updateStatus(btn.dataset.id, btn.dataset.status);
+      const ok = await patchStatus(firstNew.id, 'done');
+      if (ok) {
+        await loadOrders();
+      }
     });
 
-    loadOrders();
-    setInterval(loadOrders, 15000);
+    document.getElementById('refreshBtn').addEventListener('click', async () => {
+      await loadProducts();
+      await loadOrders();
+    });
+
+    document.getElementById('search').addEventListener('input', render);
+    document.getElementById('onlyNew').addEventListener('change', render);
+
+    async function init() {
+      await loadProducts();
+      await loadOrders();
+
+      setInterval(async () => {
+        await loadProducts();
+        await loadOrders();
+      }, 3000);
+    }
+
+    init();
   </script>
 </body>
 </html>
