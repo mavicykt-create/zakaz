@@ -14,7 +14,6 @@ const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const publicDir = path.join(__dirname, 'public');
 
 const PORT = Number(process.env.PORT || 3000);
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
@@ -25,23 +24,25 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '512kb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// CORS
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', CORS_ORIGIN);
   res.header('Access-Control-Allow-Methods', 'GET,POST,PATCH,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
 
+// limiter
 const createOrderLimiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 30,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { success: false, error: 'Слишком много запросов. Попробуйте чуть позже.' }
+  message: { success: false, error: 'Слишком много запросов. Попробуйте позже.' }
 });
+
+// ----------- HELPERS -----------
 
 function normalizeFeedArticle(value) {
   const digits = String(value || '').replace(/\D/g, '');
@@ -75,46 +76,35 @@ async function loadProductsFeed() {
 
     if (!article || Number.isNaN(price)) continue;
 
-    products[article] = {
-      price,
-      description
-    };
+    products[article] = { price, description };
   }
 
   return products;
 }
 
-async function createOrderRecord({
-  text = '',
-  comment = '',
-  customerName = '',
-  customerPhone = ''
-}) {
+async function createOrderRecord({ text = '', comment = '', customerName = '', customerPhone = '' }) {
   const parsed = parseOrderText(text);
 
   if (parsed.items.length === 0) {
     return {
       ok: false,
       status: 400,
-      body: {
-        success: false,
-        error: 'Не удалось найти позиции заказа. Проверьте текст.'
-      }
+      body: { success: false, error: 'Не удалось распознать заказ' }
     };
   }
 
   const order = await prisma.order.create({
     data: {
       rawText: text,
-      comment: String(comment || '').trim(),
-      customerName: String(customerName || '').trim(),
-      customerPhone: String(customerPhone || '').trim(),
+      comment,
+      customerName,
+      customerPhone,
       totalItems: parsed.totalItems,
       totalQuantity: parsed.totalQuantity,
       items: {
-        create: parsed.items.map((item) => ({
-          article: item.article,
-          quantity: item.quantity
+        create: parsed.items.map(i => ({
+          article: i.article,
+          quantity: i.quantity
         }))
       }
     },
@@ -127,161 +117,95 @@ async function createOrderRecord({
     body: {
       success: true,
       orderId: order.id,
-      totalItems: order.totalItems,
-      totalQuantity: order.totalQuantity,
       items: order.items
     }
   };
 }
 
+// ----------- ROUTES -----------
+
 app.get('/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.json({ ok: true, db: true });
-  } catch (error) {
-    res.status(500).json({ ok: false, db: false, error: error.message });
+  } catch (e) {
+    res.status(500).json({ ok: false, db: false });
   }
 });
 
-// Совместимость со старым фронтом: загрузка цен
 app.get('/api/products', async (_req, res) => {
   try {
-    const products = await loadProductsFeed();
-    res.json(products);
-  } catch (error) {
-    res.status(500).json({ error: error.message || 'parse error' });
+    const data = await loadProductsFeed();
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: 'feed error' });
   }
 });
 
-// Новый API
 app.post('/api/orders', createOrderLimiter, async (req, res, next) => {
   try {
-    const { text = '', comment = '', customerName = '', customerPhone = '' } = req.body || {};
-    const result = await createOrderRecord({ text, comment, customerName, customerPhone });
-    return res.status(result.status).json(result.body);
-  } catch (error) {
-    next(error);
+    const result = await createOrderRecord(req.body || {});
+    res.status(result.status).json(result.body);
+  } catch (e) {
+    next(e);
   }
 });
 
-// Совместимость со старым фронтом: rows -> text
 app.post('/api/order', createOrderLimiter, async (req, res, next) => {
   try {
-    const { rows = [], comment = '', customerName = '', customerPhone = '' } = req.body || {};
+    const { rows = [], comment = '' } = req.body || {};
 
-    if (!Array.isArray(rows) || rows.length === 0) {
-      return res.status(400).json({ success: false, error: 'No rows' });
-    }
+    const text = rows.map(r => `${r.article} ${r.quantity || 1}`).join('\n');
 
-    const text = rows
-      .map((row) => {
-        const article = String(row.article || '').trim();
-        const quantity = Number(row.quantity || 1);
-        return `${article} ${Number.isFinite(quantity) && quantity > 0 ? quantity : 1}`;
-      })
-      .join('\n');
-
-    const result = await createOrderRecord({ text, comment, customerName, customerPhone });
-    return res.status(result.status).json(result.body);
-  } catch (error) {
-    next(error);
+    const result = await createOrderRecord({ text, comment });
+    res.status(result.status).json(result.body);
+  } catch (e) {
+    next(e);
   }
 });
 
 app.get('/api/orders', basicAuth, async (req, res, next) => {
   try {
-    const status = typeof req.query.status === 'string' ? req.query.status : undefined;
-    const where =
-      status && ['new', 'processing', 'done', 'cancelled'].includes(status)
-        ? { status }
-        : {};
-
     const orders = await prisma.order.findMany({
-      where,
       include: { items: true },
       orderBy: { createdAt: 'desc' }
     });
 
     res.json({ success: true, orders });
-  } catch (error) {
-    next(error);
+  } catch (e) {
+    next(e);
   }
 });
 
-app.get('/api/orders/:id', basicAuth, async (req, res, next) => {
-  try {
-    const orderId = Number(req.params.id);
-    if (!Number.isInteger(orderId)) {
-      return res.status(400).json({ success: false, error: 'Некорректный ID заказа.' });
-    }
+// ----------- FRONT -----------
 
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: { items: true }
-    });
+// раздаём файлы из корня
+app.use(express.static(__dirname));
 
-    if (!order) {
-      return res.status(404).json({ success: false, error: 'Заказ не найден.' });
-    }
-
-    res.json({ success: true, order });
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.patch('/api/orders/:id/status', basicAuth, async (req, res, next) => {
-  try {
-    const orderId = Number(req.params.id);
-    const status = String(req.body?.status || '').trim();
-    const allowed = ['new', 'processing', 'done', 'cancelled'];
-
-    if (!Number.isInteger(orderId)) {
-      return res.status(400).json({ success: false, error: 'Некорректный ID заказа.' });
-    }
-
-    if (!allowed.includes(status)) {
-      return res.status(400).json({ success: false, error: 'Некорректный статус.' });
-    }
-
-    const order = await prisma.order.update({
-      where: { id: orderId },
-      data: { status },
-      include: { items: true }
-    });
-
-    res.json({ success: true, order });
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.use('/superadmin', basicAuth, express.static(publicDir));
-app.use('/public', express.static(publicDir));
-app.use(express.static(publicDir));
-
+// главная
 app.get('/', (_req, res) => {
-  res.sendFile(path.join(publicDir, 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.use((error, _req, res, _next) => {
-  console.error(error);
-  res.status(500).json({
-    success: false,
-    error: 'Внутренняя ошибка сервера.'
-  });
+// админка
+app.get('/superadmin', basicAuth, (_req, res) => {
+  res.sendFile(path.join(__dirname, 'superadmin.html'));
 });
+
+// ----------- ERRORS -----------
+
+app.use((err, _req, res, _next) => {
+  console.error(err);
+  res.status(500).json({ success: false, error: 'Server error' });
+});
+
+// ----------- START -----------
 
 async function start() {
-  try {
-    await prisma.$connect();
-    app.listen(PORT, () => {
-      console.log(`Server started on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('Failed to start server', error);
-    process.exit(1);
-  }
+  await prisma.$connect();
+  app.listen(PORT, () => {
+    console.log('Server started on port ' + PORT);
+  });
 }
 
 start();
