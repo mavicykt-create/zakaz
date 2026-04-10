@@ -1,0 +1,8 @@
+meta:
+  environment: node
+  toolchain:
+    name: node
+    version: 18
+
+run:
+  script: npm start
