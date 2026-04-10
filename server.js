@@ -182,6 +182,42 @@ app.get('/api/orders', basicAuth, async (req, res, next) => {
   }
 });
 
+app.patch('/api/orders/:id/status', basicAuth, async (req, res, next) => {
+  try {
+    const orderId = Number(req.params.id);
+    const status = String(req.body?.status || '').trim();
+
+    const allowed = ['new', 'done', 'cancelled'];
+
+    if (!Number.isInteger(orderId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Некорректный ID заказа'
+      });
+    }
+
+    if (!allowed.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Некорректный статус'
+      });
+    }
+
+    const order = await prisma.order.update({
+      where: { id: orderId },
+      data: { status },
+      include: { items: true }
+    });
+
+    res.json({
+      success: true,
+      order
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ----------- FRONT -----------
 
 // раздаём файлы из корня
