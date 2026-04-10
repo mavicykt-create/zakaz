@@ -17,6 +17,8 @@
     --blue:#2563eb;
     --green:#16a34a;
     --red:#dc2626;
+    --red-2:#991b1b;
+    --yellow:#ca8a04;
     --success-bg:#ecfdf5;
     --success:#047857;
     --shadow-lg:0 24px 60px rgba(17,24,39,.10);
@@ -114,7 +116,7 @@
   .badge.dark b{ color:#fff; }
 
   .panel{
-    padding:16px;
+    padding:14px 16px;
     border-radius:28px;
     background:rgba(255,255,255,.90);
     border:1px solid var(--line);
@@ -124,11 +126,15 @@
   }
 
   .preview{
-    min-height:70px;
+    min-height:82px;
     display:grid;
     grid-template-columns:1fr auto auto;
     gap:10px;
     align-items:center;
+  }
+
+  .preview-main{
+    min-width:0;
   }
 
   .preview-code{
@@ -137,6 +143,18 @@
     letter-spacing:-0.04em;
     color:var(--ink);
     min-height:1.2em;
+    line-height:1.1;
+  }
+
+  .preview-name{
+    margin-top:6px;
+    min-height:1.2em;
+    color:#6b7280;
+    font-size:13px;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
 
   .preview-empty{ color:#9ca3af; }
@@ -211,15 +229,31 @@
   }
 
   .display.invalid{
-    border-color:#fecaca;
-    background:linear-gradient(180deg,#fff5f5 0%,#ffecec 100%);
-    color:#dc2626;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 0 0 3px rgba(220,38,38,.08);
+    border-color:#ef4444;
+    background:linear-gradient(180deg,#fff1f2 0%,#ffe4e6 100%);
+    color:#b91c1c;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.9),
+      0 0 0 4px rgba(239,68,68,.15),
+      0 0 20px rgba(239,68,68,.20);
+    animation:errorShake .24s linear 1;
   }
 
   .panel.invalid{
-    border-color:#fecaca;
-    background:#fff5f5;
+    border-color:#ef4444;
+    background:#fff1f2;
+    box-shadow:
+      0 0 0 4px rgba(239,68,68,.12),
+      0 10px 26px rgba(185,28,28,.10);
+  }
+
+  @keyframes errorShake{
+    0%{transform:translateX(0)}
+    20%{transform:translateX(-4px)}
+    40%{transform:translateX(4px)}
+    60%{transform:translateX(-3px)}
+    80%{transform:translateX(3px)}
+    100%{transform:translateX(0)}
   }
 
   .grid{
@@ -312,22 +346,57 @@
   }
 
   .feedstatus{
+    display:flex;
+    align-items:center;
+    gap:10px;
     margin-top:-4px;
     margin-bottom:12px;
     color:#6b7280;
     font-size:13px;
-    font-weight:500;
+    font-weight:700;
+  }
+
+  .feed-dot{
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    flex:0 0 12px;
+    background:#ef4444;
+    box-shadow:0 0 0 3px rgba(239,68,68,.12);
+  }
+
+  .feed-dot.loading{
+    background:#facc15;
+    box-shadow:0 0 0 3px rgba(250,204,21,.16);
+    animation:blinkLoading .9s infinite;
+  }
+
+  .feed-dot.ready{
+    background:#22c55e;
+    box-shadow:0 0 0 3px rgba(34,197,94,.14);
+    animation:none;
+  }
+
+  @keyframes blinkLoading{
+    0%,100%{opacity:1}
+    50%{opacity:.35}
   }
 
   .msg{
     display:none;
     margin-top:12px;
-    padding:14px 16px;
+    padding:16px 18px;
     border-radius:20px;
     background:var(--success-bg);
     color:var(--success);
     font-size:15px;
     font-weight:700;
+    line-height:1.45;
+    box-shadow:0 10px 24px rgba(4,120,87,.08);
+  }
+
+  .msg strong{
+    font-size:16px;
   }
 
   .modal{
@@ -407,6 +476,12 @@
     border-color:var(--primary);
   }
 
+  .sheet-btn.danger{
+    background:#fff1f2;
+    color:#b91c1c;
+    border-color:#fecdd3;
+  }
+
   .items-list{
     display:flex;
     flex-direction:column;
@@ -415,13 +490,32 @@
 
   .item-row{
     display:grid;
-    grid-template-columns:minmax(0,1fr) auto auto;
+    grid-template-columns:52px minmax(0,1fr) auto auto;
     gap:10px;
     align-items:center;
     padding:12px 14px;
     border-radius:20px;
     border:1px solid var(--line);
     background:#fbfcfd;
+  }
+
+  .item-thumb{
+    width:52px;
+    height:52px;
+    border-radius:14px;
+    background:#fff;
+    border:1px solid #e5e7eb;
+    object-fit:cover;
+  }
+
+  .item-thumb.placeholder{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#9ca3af;
+    font-size:11px;
+    font-weight:700;
+    background:#f8fafc;
   }
 
   .item-row-code{
@@ -485,12 +579,15 @@
       <div class="title">Мобильный заказ</div>
       <div class="badges">
         <div class="badge">Позиций<b id="positions">0</b></div>
-        <button type="button" class="badge dark" id="openItems">Всего<b id="total">0</b></button>
+        <button type="button" class="badge dark" id="openItems">Корзина<b id="total">0</b></button>
       </div>
     </div>
 
     <div class="panel preview" id="previewPanel">
-      <div class="preview-code preview-empty" id="previewCode"></div>
+      <div class="preview-main">
+        <div class="preview-code preview-empty" id="previewCode"></div>
+        <div class="preview-name" id="previewName"></div>
+      </div>
       <div class="preview-qty" id="previewQty"></div>
       <div class="actions" id="previewActions" style="display:none;">
         <button type="button" class="icon-btn minus" id="minus">−</button>
@@ -512,14 +609,17 @@
       </div>
     </div>
 
-    <div class="feedstatus" id="feedStatus">Загрузка цен…</div>
+    <div class="feedstatus" id="feedStatus">
+      <span class="feed-dot" id="feedDot"></span>
+      <span id="feedStatusText">Готовность терминала: не готов</span>
+    </div>
 
     <div class="toolbar">
       <button type="button" class="submit" id="submit">Отправить заявку</button>
       <button type="button" class="comment-btn" id="openComment">💬</button>
     </div>
 
-    <div class="msg" id="message">Заявка отправлена. Спасибо за заказ!</div>
+    <div class="msg" id="message"></div>
   </div>
 </div>
 
@@ -539,6 +639,11 @@
   <div class="sheet">
     <div class="sheet-handle"></div>
     <h3 class="sheet-title">Позиции заказа</h3>
+
+    <div style="margin-bottom:14px;">
+      <button type="button" class="sheet-btn danger" id="clearCartBtn" style="width:100%;">Очистить корзину</button>
+    </div>
+
     <div class="items-list" id="itemsList"></div>
     <div class="sheet-actions">
       <button type="button" class="sheet-btn primary" id="closeItems">Готово</button>
@@ -555,55 +660,128 @@ let PRODUCTS = {};
 let autoAddTimer = null;
 let invalidTimer = null;
 let isSending = false;
+let feedLoaded = false;
 
 const elDisplay = document.getElementById('display');
 const elPositions = document.getElementById('positions');
 const elTotal = document.getElementById('total');
 const elPreviewCode = document.getElementById('previewCode');
+const elPreviewName = document.getElementById('previewName');
 const elPreviewQty = document.getElementById('previewQty');
 const elPreviewActions = document.getElementById('previewActions');
 const elPreviewPanel = document.getElementById('previewPanel');
 const elSum = document.getElementById('sum');
 const elMsg = document.getElementById('message');
-const elFeedStatus = document.getElementById('feedStatus');
 const elComment = document.getElementById('comment');
 const elCommentState = document.getElementById('commentState');
 const elSubmit = document.getElementById('submit');
+const elFeedDot = document.getElementById('feedDot');
+const elFeedStatusText = document.getElementById('feedStatusText');
 const okKeySelector = '.key.ok';
 
-function beep(freq){
+function beepSuccess(freq){
   try{
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const o = ctx.createOscillator();
     const g = ctx.createGain();
     o.frequency.value = freq;
+    o.type = 'sine';
     o.connect(g);
     g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.06, ctx.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.06);
     o.start();
-    o.stop(ctx.currentTime + 0.05);
+    o.stop(ctx.currentTime + 0.06);
   }catch(e){}
+}
+
+function beepError(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+
+    const o1 = ctx.createOscillator();
+    const g1 = ctx.createGain();
+    o1.type = 'square';
+    o1.frequency.setValueAtTime(300, now);
+    o1.frequency.linearRampToValueAtTime(180, now + 0.16);
+    g1.gain.setValueAtTime(0.0001, now);
+    g1.gain.exponentialRampToValueAtTime(0.09, now + 0.01);
+    g1.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    o1.connect(g1);
+    g1.connect(ctx.destination);
+    o1.start(now);
+    o1.stop(now + 0.18);
+
+    const o2 = ctx.createOscillator();
+    const g2 = ctx.createGain();
+    o2.type = 'square';
+    o2.frequency.setValueAtTime(220, now + 0.10);
+    o2.frequency.linearRampToValueAtTime(140, now + 0.30);
+    g2.gain.setValueAtTime(0.0001, now + 0.10);
+    g2.gain.exponentialRampToValueAtTime(0.07, now + 0.11);
+    g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+    o2.connect(g2);
+    g2.connect(ctx.destination);
+    o2.start(now + 0.10);
+    o2.stop(now + 0.32);
+  }catch(e){}
+}
+
+function setFeedState(state, text){
+  elFeedDot.className = 'feed-dot';
+  if (state === 'loading') elFeedDot.classList.add('loading');
+  if (state === 'ready') elFeedDot.classList.add('ready');
+  elFeedStatusText.textContent = text;
+}
+
+async function preloadImages(products){
+  const list = Object.values(products)
+    .map(p => p && p.image ? p.image : '')
+    .filter(Boolean)
+    .slice(0, 30);
+
+  for (const src of list){
+    const img = new Image();
+    img.src = src;
+  }
 }
 
 async function loadPrices(){
   try{
+    setFeedState('loading', 'Готовность терминала: загрузка...');
     const res = await fetch('/api/products', { cache: 'no-store' });
     if(!res.ok) throw new Error('feed');
     PRODUCTS = await res.json();
-    elFeedStatus.textContent = 'Цены загружены';
+    feedLoaded = true;
+    setFeedState('ready', 'Готовность терминала: готов');
+    preloadImages(PRODUCTS);
     sync();
   }catch(e){
-    elFeedStatus.textContent = 'Цены не загружены';
+    feedLoaded = false;
+    PRODUCTS = {};
+    setFeedState('error', 'Готовность терминала: не готов');
   }
 }
 
+function getProduct(code){
+  return PRODUCTS[code] || null;
+}
+
 function getPrice(code){
-  const p = PRODUCTS[code];
+  const p = getProduct(code);
   return p ? Number(p.price || 0) : 0;
 }
 
 function getDescription(code){
-  const p = PRODUCTS[code];
+  const p = getProduct(code);
   return p && p.description ? p.description : '';
+}
+
+function getImage(code){
+  const p = getProduct(code);
+  return p && p.image ? p.image : '';
 }
 
 function hasProduct(code){
@@ -631,7 +809,7 @@ function showInvalidCode(){
     elDisplay.classList.remove('invalid');
     elPreviewPanel.classList.remove('invalid');
     sync();
-  }, 900);
+  }, 1100);
 }
 
 function scheduleAutoAdd(){
@@ -649,6 +827,22 @@ function scheduleAutoAdd(){
   }, 1000);
 }
 
+function escapeHtml(value){
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function getOrderRowsForApi(){
+  return rows.map(r => ({
+    article: r.code,
+    quantity: r.qty
+  }));
+}
+
 function renderItems(){
   const el = document.getElementById('itemsList');
   el.innerHTML = '';
@@ -662,10 +856,16 @@ function renderItems(){
     const price = getPrice(r.code);
     const lineSum = price * r.qty;
     const desc = getDescription(r.code);
+    const image = getImage(r.code);
+
+    const thumbHtml = image
+      ? `<img class="item-thumb" src="${escapeHtml(image)}" alt="">`
+      : `<div class="item-thumb placeholder">нет фото</div>`;
 
     const div = document.createElement('div');
     div.className = 'item-row';
     div.innerHTML =
+      thumbHtml +
       '<div>' +
         '<div class="item-row-code">' + escapeHtml(r.code) + '</div>' +
         (desc ? '<div class="item-row-sub" title="' + escapeHtml(desc) + '">' + escapeHtml(desc) + '</div>' : '') +
@@ -680,15 +880,6 @@ function renderItems(){
   });
 }
 
-function escapeHtml(value){
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
-
 function sync(){
   elDisplay.textContent = (current + '****').slice(0,4);
   elPositions.textContent = String(rows.length);
@@ -697,11 +888,15 @@ function sync(){
   if(rows.length){
     const last = rows[rows.length - 1];
     elPreviewCode.textContent = last.code;
+    elPreviewCode.classList.remove('preview-empty');
     elPreviewQty.textContent = last.qty;
+    elPreviewName.textContent = getDescription(last.code) || '';
     elPreviewActions.style.display = 'flex';
   }else{
     elPreviewCode.textContent = '';
+    elPreviewCode.classList.add('preview-empty');
     elPreviewQty.textContent = '';
+    elPreviewName.textContent = '';
     elPreviewActions.style.display = 'none';
   }
 
@@ -746,12 +941,12 @@ function addCode(isAuto){
   const code = current;
 
   if(!hasProduct(code)){
-    beep(420);
+    beepError();
     showInvalidCode();
     return;
   }
 
-  beep(isAuto ? 760 : 820);
+  beepSuccess(isAuto ? 760 : 820);
 
   const found = rows.find(r => r.code === code);
   if(found) found.qty += 1;
@@ -765,9 +960,19 @@ function addCode(isAuto){
 
 function changeIndex(index,delta){
   if(index < 0 || index >= rows.length) return;
-  beep(delta > 0 ? 940 : 540);
+  beepSuccess(delta > 0 ? 940 : 540);
   rows[index].qty += delta;
   if(rows[index].qty <= 0) rows.splice(index,1);
+  sync();
+}
+
+function clearCart(){
+  rows = [];
+  current = '';
+  elComment.value = '';
+  elMsg.style.display = 'none';
+  elDisplay.classList.remove('invalid');
+  elPreviewPanel.classList.remove('invalid');
   sync();
 }
 
@@ -776,38 +981,46 @@ async function send(){
     alert('Добавь товар');
     return;
   }
+
+  if(!feedLoaded){
+    alert('Терминал ещё не готов. Дождитесь загрузки цен.');
+    return;
+  }
+
   if(isSending) return;
 
   isSending = true;
   elSubmit.disabled = true;
 
-  const lines = rows.map(r => r.code + '\t' + r.qty);
   const comment = (elComment.value || '').trim();
-
-  let fullText = lines.join('\n');
-  if(comment){
-    fullText += '\n\nКомментарий: ' + comment;
-  }
+  const orderRows = getOrderRowsForApi();
+  const orderSum = rows.reduce((sum, r) => sum + (getPrice(r.code) * r.qty), 0);
 
   try{
     const res = await fetch('/api/order', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
-  rows: rows.map(r => ({
-    article: r.code,
-    quantity: r.qty
-  })),
-  comment: comment
-})
+        rows: orderRows,
+        comment: comment
+      })
     });
 
-    if(!res.ok){
-      alert('Не удалось отправить заявку');
+    const data = await res.json().catch(() => ({}));
+
+    if(!res.ok || !data.success){
+      alert(data.error || 'Не удалось отправить заявку');
       return;
     }
 
+    const orderId = data.orderId || '—';
+
+    elMsg.innerHTML = `
+      <strong>Ваш заказ №${escapeHtml(orderId)} на сумму: ${escapeHtml(orderSum.toLocaleString('ru-RU'))} ₽.</strong><br>
+      Спасибо за заказ! 💚
+    `;
     elMsg.style.display = 'block';
+
     rows = [];
     current = '';
     elComment.value = '';
@@ -837,6 +1050,19 @@ document.getElementById('submit').onclick = send;
 
 document.getElementById('openItems').onclick = ()=>document.getElementById('itemsModal').classList.add('open');
 document.getElementById('closeItems').onclick = ()=>document.getElementById('itemsModal').classList.remove('open');
+
+document.getElementById('clearCartBtn').onclick = ()=>{
+  if(!rows.length){
+    alert('Корзина уже пустая');
+    return;
+  }
+
+  const ok = confirm('Очистить корзину? Все позиции будут удалены.');
+  if(!ok) return;
+
+  clearCart();
+  document.getElementById('itemsModal').classList.remove('open');
+};
 
 document.getElementById('openComment').onclick = ()=>{
   document.getElementById('commentModal').classList.add('open');
