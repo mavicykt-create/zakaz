@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Super Admin</title>
+<style>
+body { font-family: Arial; padding: 20px; background:#f5f5f5;}
+table { width:100%; border-collapse: collapse; background:#fff;}
+th, td { border:1px solid #ddd; padding:10px;}
+th { background:#111; color:#fff;}
+</style>
+</head>
+<body>
+
+<h2>Заказы</h2>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Дата</th>
+<th>Позиции</th>
+<th>Комментарий</th>
+</tr>
+</thead>
+<tbody id="orders"></tbody>
+</table>
+
+<script>
+async function load() {
+  const res = await fetch("/api/orders");
+  const data = await res.json();
+
+  const el = document.getElementById("orders");
+  el.innerHTML = "";
+
+  data.reverse().forEach(o => {
+    const tr = document.createElement("tr");
+
+    const items = o.rows.map(r => r.article + " x" + r.quantity).join("<br>");
+
+    tr.innerHTML = `
+      <td>${o.id}</td>
+      <td>${new Date(o.date).toLocaleString()}</td>
+      <td>${items}</td>
+      <td>${o.comment || ""}</td>
+    `;
+
+    el.appendChild(tr);
+  });
+}
+
+load();
+</script>
+
+</body>
+</html>
