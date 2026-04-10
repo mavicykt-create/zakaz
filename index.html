@@ -790,10 +790,16 @@ async function send(){
   }
 
   try{
-    const res = await fetch('/api/send', {
+    const res = await fetch('/api/order', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ text: fullText })
+      body: JSON.stringify({
+  rows: rows.map(r => ({
+    article: r.code,
+    quantity: r.qty
+  })),
+  comment: comment
+})
     });
 
     if(!res.ok){
