@@ -1,57 +1,392 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Super Admin</title>
-<style>
-body { font-family: Arial; padding: 20px; background:#f5f5f5;}
-table { width:100%; border-collapse: collapse; background:#fff;}
-th, td { border:1px solid #ddd; padding:10px;}
-th { background:#111; color:#fff;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Superadmin</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: 32px;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      min-width: 180px;
+    }
+
+    .card small {
+      display: block;
+      color: #6b7280;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .card strong {
+      font-size: 28px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar input,
+    .toolbar select,
+    .toolbar button {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      font-size: 15px;
+    }
+
+    .toolbar input {
+      min-width: 260px;
+      flex: 1;
+    }
+
+    .toolbar button {
+      cursor: pointer;
+      background: #111827;
+      color: white;
+      border: 0;
+    }
+
+    .orders {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .order {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+
+    .order-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .order-title {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .muted {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status-new { background: #dbeafe; color: #1d4ed8; }
+    .status-processing { background: #fef3c7; color: #b45309; }
+    .status-done { background: #dcfce7; color: #15803d; }
+    .status-cancelled { background: #fee2e2; color: #b91c1c; }
+
+    .order-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 18px;
+    }
+
+    .items {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .item-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .item-row:last-child {
+      border-bottom: 0;
+    }
+
+    .item-article {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .item-qty {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .meta-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 14px;
+      background: #fafafa;
+    }
+
+    .meta-box div {
+      margin-bottom: 10px;
+    }
+
+    .meta-box div:last-child {
+      margin-bottom: 0;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .actions button {
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .btn-new { background: #dbeafe; color: #1d4ed8; }
+    .btn-processing { background: #fef3c7; color: #b45309; }
+    .btn-done { background: #dcfce7; color: #15803d; }
+    .btn-cancelled { background: #fee2e2; color: #b91c1c; }
+
+    .empty {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      color: #6b7280;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+
+    @media (max-width: 800px) {
+      .order-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <h1>Заказы</h1>
 
-<h2>Заказы</h2>
+    <div class="topbar">
+      <div class="card">
+        <small>Всего заказов</small>
+        <strong id="countAll">0</strong>
+      </div>
+      <div class="card">
+        <small>Новые</small>
+        <strong id="countNew">0</strong>
+      </div>
+      <div class="card">
+        <small>Всего товаров</small>
+        <strong id="countQty">0</strong>
+      </div>
+    </div>
 
-<table>
-<thead>
-<tr>
-<th>ID</th>
-<th>Дата</th>
-<th>Позиции</th>
-<th>Комментарий</th>
-</tr>
-</thead>
-<tbody id="orders"></tbody>
-</table>
+    <div class="toolbar">
+      <input type="text" id="search" placeholder="Поиск по артикулу, ID, комментарию..." />
+      <select id="statusFilter">
+        <option value="">Все статусы</option>
+        <option value="new">Новые</option>
+        <option value="processing">В работе</option>
+        <option value="done">Готово</option>
+        <option value="cancelled">Отменено</option>
+      </select>
+      <button id="refreshBtn">Обновить</button>
+    </div>
 
-<script>
-async function load() {
-  const res = await fetch("/api/orders");
-  const data = await res.json();
+    <div id="orders" class="orders"></div>
+  </div>
 
-  const el = document.getElementById("orders");
-  el.innerHTML = "";
+  <script>
+    let allOrders = [];
 
-  data.reverse().forEach(o => {
-    const tr = document.createElement("tr");
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
 
-    const items = o.rows.map(r => r.article + " x" + r.quantity).join("<br>");
+    function statusClass(status) {
+      return 'status-' + (status || 'new');
+    }
 
-    tr.innerHTML = `
-      <td>${o.id}</td>
-      <td>${new Date(o.date).toLocaleString()}</td>
-      <td>${items}</td>
-      <td>${o.comment || ""}</td>
-    `;
+    function statusText(status) {
+      const map = {
+        new: 'Новый',
+        processing: 'В работе',
+        done: 'Готово',
+        cancelled: 'Отменён'
+      };
+      return map[status] || status || 'Новый';
+    }
 
-    el.appendChild(tr);
-  });
-}
+    async function loadOrders() {
+      const res = await fetch('/api/orders');
+      const data = await res.json();
 
-load();
-</script>
+      allOrders = Array.isArray(data.orders) ? data.orders : [];
+      render();
+    }
 
+    function render() {
+      const search = document.getElementById('search').value.trim().toLowerCase();
+      const statusFilter = document.getElementById('statusFilter').value;
+
+      const filtered = allOrders.filter(order => {
+        const haystack = [
+          order.id,
+          order.comment,
+          order.customerName,
+          order.customerPhone,
+          order.rawText,
+          ...(order.items || []).map(i => i.article)
+        ].join(' ').toLowerCase();
+
+        const statusOk = !statusFilter || order.status === statusFilter;
+        const searchOk = !search || haystack.includes(search);
+
+        return statusOk && searchOk;
+      });
+
+      document.getElementById('countAll').textContent = allOrders.length;
+      document.getElementById('countNew').textContent = allOrders.filter(o => o.status === 'new').length;
+      document.getElementById('countQty').textContent = allOrders.reduce((sum, o) => sum + (o.totalQuantity || 0), 0);
+
+      const root = document.getElementById('orders');
+      root.innerHTML = '';
+
+      if (!filtered.length) {
+        root.innerHTML = '<div class="empty">Заказов пока нет</div>';
+        return;
+      }
+
+      filtered.forEach(order => {
+        const div = document.createElement('div');
+        div.className = 'order';
+
+        const itemsHtml = (order.items || []).map(item => `
+          <div class="item-row">
+            <div class="item-article">${escapeHtml(item.article)}</div>
+            <div class="item-qty">× ${escapeHtml(item.quantity)}</div>
+          </div>
+        `).join('');
+
+        div.innerHTML = `
+          <div class="order-head">
+            <div>
+              <div class="order-title">Заказ #${escapeHtml(order.id)}</div>
+              <div class="muted">${new Date(order.createdAt).toLocaleString()}</div>
+            </div>
+            <div>
+              <span class="status ${statusClass(order.status)}">${statusText(order.status)}</span>
+            </div>
+          </div>
+
+          <div class="order-grid">
+            <div>
+              <div class="items">${itemsHtml}</div>
+              <div class="actions">
+                <button class="btn-new" data-id="${order.id}" data-status="new">Новый</button>
+                <button class="btn-processing" data-id="${order.id}" data-status="processing">В работе</button>
+                <button class="btn-done" data-id="${order.id}" data-status="done">Готово</button>
+                <button class="btn-cancelled" data-id="${order.id}" data-status="cancelled">Отменить</button>
+              </div>
+            </div>
+
+            <div class="meta-box">
+              <div><strong>Позиций:</strong> ${escapeHtml(order.totalItems || 0)}</div>
+              <div><strong>Количество:</strong> ${escapeHtml(order.totalQuantity || 0)}</div>
+              <div><strong>Комментарий:</strong> ${escapeHtml(order.comment || '—')}</div>
+              <div><strong>Клиент:</strong> ${escapeHtml(order.customerName || '—')}</div>
+              <div><strong>Телефон:</strong> ${escapeHtml(order.customerPhone || '—')}</div>
+              <div><strong>Raw:</strong><br><pre style="white-space:pre-wrap;margin:6px 0 0;font-family:inherit;">${escapeHtml(order.rawText || '')}</pre></div>
+            </div>
+          </div>
+        `;
+
+        root.appendChild(div);
+      });
+    }
+
+    async function updateStatus(id, status) {
+      const res = await fetch('/api/orders/' + id + '/status', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Не удалось сменить статус');
+        return;
+      }
+
+      await loadOrders();
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadOrders);
+    document.getElementById('search').addEventListener('input', render);
+    document.getElementById('statusFilter').addEventListener('change', render);
+
+    document.getElementById('orders').addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-id][data-status]');
+      if (!btn) return;
+
+      await updateStatus(btn.dataset.id, btn.dataset.status);
+    });
+
+    loadOrders();
+    setInterval(loadOrders, 15000);
+  </script>
 </body>
 </html>
