@@ -98,6 +98,11 @@ h1{
   transform:scale(.98);
 }
 
+.btn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
 .btn.dark{ background:#111827; color:#fff; }
 .btn.blue{ background:var(--blue); color:#fff; }
 .btn.green{ background:var(--green); color:#fff; }
@@ -112,6 +117,17 @@ h1{
   border-radius:14px;
   background:var(--green-bg);
   color:#166534;
+  font-weight:700;
+  box-shadow:var(--shadow);
+}
+
+.errorbar{
+  display:none;
+  margin-bottom:16px;
+  padding:14px 16px;
+  border-radius:14px;
+  background:var(--red-bg);
+  color:#b91c1c;
   font-weight:700;
   box-shadow:var(--shadow);
 }
@@ -321,12 +337,12 @@ h1{
 
 .order.done{
   border-left-color:var(--green);
-  opacity:.94;
+  opacity:.96;
 }
 
 .order.cancelled{
   border-left-color:var(--red);
-  opacity:.84;
+  opacity:.86;
 }
 
 .order-head{
@@ -546,6 +562,7 @@ h1{
   </div>
 
   <div id="notice" class="notice">Поступил новый заказ</div>
+  <div id="errorbar" class="errorbar">Ошибка</div>
 
   <div class="stats">
     <div class="stat">
@@ -639,6 +656,13 @@ let products = {};
 let lastTopOrderId = null;
 let audioUnlocked = false;
 let showOnlyNew = true;
+let isRefreshing = false;
+
+const elOrders = document.getElementById('orders');
+const elNotice = document.getElementById('notice');
+const elErrorbar = document.getElementById('errorbar');
+const elRefreshBtn = document.getElementById('refreshBtn');
+const elCopyFirstBtn = document.getElementById('copyFirstBtn');
 
 function escapeHtml(value){
   return String(value ?? '')
@@ -659,6 +683,17 @@ function formatDate(value){
   }catch{
     return value || '—';
   }
+}
+
+function setError(message){
+  if(!message){
+    elErrorbar.style.display = 'none';
+    elErrorbar.textContent = '';
+    return;
+  }
+
+  elErrorbar.textContent = message;
+  elErrorbar.style.display = 'block';
 }
 
 function unlockAudio(){
@@ -700,13 +735,12 @@ function beepNewOrder(){
 }
 
 function showNotice(text){
-  const el = document.getElementById('notice');
-  el.textContent = text;
-  el.style.display = 'block';
+  elNotice.textContent = text;
+  elNotice.style.display = 'block';
 
   clearTimeout(showNotice._t);
   showNotice._t = setTimeout(() => {
-    el.style.display = 'none';
+    elNotice.style.display = 'none';
   }, 2500);
 }
 
@@ -733,7 +767,7 @@ function sortOrders(list){
 }
 
 function getOrderExcelText(order){
-  return (order.items || []).map(i => `${i.article}\t${i.quantity}`).join('\n');
+  return (order.items || []).map(i => `${i.article}\t${i.quantity}`).join('\\n');
 }
 
 async function copyOrder(order, button){
@@ -756,10 +790,28 @@ async function copyOrder(order, button){
   }
 }
 
+async function fetchJson(url, options = {}){
+  const res = await fetch(url, {
+    cache: 'no-store',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(data.error || `Ошибка запроса ${res.status}`);
+  }
+
+  return data;
+}
+
 async function loadProducts(){
   try{
-    const res = await fetch('/api/products', { cache:'no-store' });
-    const data = await res.json();
+    const data = await fetchJson('/api/products', { method:'GET', headers:{} });
     products = data && typeof data === 'object' ? data : {};
   }catch(e){
     products = {};
@@ -778,8 +830,7 @@ function calcOrderSum(order){
 }
 
 async function loadOrders(){
-  const res = await fetch('/api/orders', { cache:'no-store' });
-  const data = await res.json();
+  const data = await fetchJson('/api/orders', { method:'GET', headers:{} });
   const nextOrders = Array.isArray(data.orders) ? data.orders : [];
   const sorted = sortOrders(nextOrders);
 
@@ -795,21 +846,22 @@ async function loadOrders(){
   }
 
   orders = sorted;
-  render();
 }
 
 async function patchStatus(orderId, status){
-  const res = await fetch('/api/orders/' + orderId + '/status', {
+  const data = await fetchJson('/api/orders/' + orderId + '/status', {
     method:'PATCH',
-    headers:{ 'Content-Type':'application/json' },
-    body:JSON.stringify({ status })
+    body: JSON.stringify({ status })
   });
 
-  const data = await res.json().catch(() => ({}));
+  if (!data.success) {
+    throw new Error(data.error || 'Не удалось изменить статус');
+  }
 
-  if(!res.ok || !data.success){
-    alert(data.error || 'Не удалось изменить статус');
-    return false;
+  const idx = orders.findIndex(o => Number(o.id) === Number(orderId));
+  if (idx !== -1) {
+    orders[idx] = { ...orders[idx], status };
+    orders = sortOrders(orders);
   }
 
   return true;
@@ -823,9 +875,7 @@ function setPushResult(message, isError = false){
 
 async function loadPushStats(){
   try{
-    const res = await fetch('/api/push/stats', { cache:'no-store' });
-    const data = await res.json();
-
+    const data = await fetchJson('/api/push/stats', { method:'GET', headers:{} });
     document.getElementById('pushEnabled').textContent = data.enabled ? 'Включён' : 'Выключен';
     document.getElementById('pushSubscriptions').textContent = data.subscriptions ?? 0;
   }catch(e){
@@ -836,9 +886,7 @@ async function loadPushStats(){
 
 async function loadLiveStats(){
   try{
-    const res = await fetch('/api/live/stats', { cache:'no-store' });
-    const data = await res.json();
-
+    const data = await fetchJson('/api/live/stats', { method:'GET', headers:{} });
     document.getElementById('liveUsers').textContent = Number(data.users || 0).toLocaleString('ru-RU');
     document.getElementById('liveSum').textContent = formatMoney(data.total || 0);
     document.getElementById('liveAvg').textContent = formatMoney(data.avg || 0);
@@ -858,15 +906,12 @@ function getPushPayload(){
 }
 
 async function sendPush(payload){
-  const res = await fetch('/api/push/send', {
+  const data = await fetchJson('/api/push/send', {
     method:'POST',
-    headers:{ 'Content-Type':'application/json' },
-    body:JSON.stringify(payload)
+    body: JSON.stringify(payload)
   });
 
-  const data = await res.json().catch(() => ({}));
-
-  if(!res.ok || !data.success){
+  if(!data.success){
     throw new Error(data.error || 'Не удалось отправить push');
   }
 
@@ -889,14 +934,17 @@ async function sendPushForOrder(order){
   }
 }
 
-function render(){
-  const root = document.getElementById('orders');
-  const q = document.getElementById('search').value.trim().toLowerCase();
-
+function updateCounters(){
   document.getElementById('statAll').textContent = orders.length;
   document.getElementById('statNew').textContent = orders.filter(o => o.status === 'new').length;
   document.getElementById('statDone').textContent = orders.filter(o => o.status === 'done').length;
   document.getElementById('statCancelled').textContent = orders.filter(o => o.status === 'cancelled').length;
+}
+
+function render(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+
+  updateCounters();
 
   const filtered = orders.filter(order => {
     if (showOnlyNew && order.status !== 'new') return false;
@@ -914,11 +962,11 @@ function render(){
   });
 
   if(!filtered.length){
-    root.innerHTML = '<div class="empty">Подходящих заказов нет</div>';
+    elOrders.innerHTML = '<div class="empty">Подходящих заказов нет</div>';
     return;
   }
 
-  root.innerHTML = '';
+  elOrders.innerHTML = '';
 
   filtered.forEach(order => {
     const orderSum = calcOrderSum(order);
@@ -1000,8 +1048,30 @@ function render(){
       </div>
     `;
 
-    root.appendChild(div);
+    elOrders.appendChild(div);
   });
+}
+
+async function refreshAll(showErrors = true){
+  if (isRefreshing) return;
+  isRefreshing = true;
+
+  try{
+    setError('');
+    await Promise.all([
+      loadProducts(),
+      loadPushStats(),
+      loadLiveStats()
+    ]);
+    await loadOrders();
+    render();
+  }catch(e){
+    if (showErrors) {
+      setError(e.message || 'Ошибка загрузки данных');
+    }
+  }finally{
+    isRefreshing = false;
+  }
 }
 
 document.addEventListener('click', unlockAudio, { once:true });
@@ -1023,14 +1093,11 @@ document.getElementById('showOnlyNewBtn').addEventListener('click', () => {
   render();
 });
 
-document.getElementById('refreshBtn').addEventListener('click', async () => {
-  await loadProducts();
-  await loadOrders();
-  await loadPushStats();
-  await loadLiveStats();
+elRefreshBtn.addEventListener('click', async () => {
+  await refreshAll(true);
 });
 
-document.getElementById('copyFirstBtn').addEventListener('click', async (e) => {
+elCopyFirstBtn.addEventListener('click', async (e) => {
   const firstNew = orders.find(o => o.status === 'new');
   if(!firstNew){
     alert('Новых заказов нет');
@@ -1091,7 +1158,7 @@ document.getElementById('sendPushBtn').addEventListener('click', async () => {
   }
 });
 
-document.getElementById('orders').addEventListener('click', async (e) => {
+elOrders.addEventListener('click', async (e) => {
   const copyBtn = e.target.closest('[data-copy]');
   const pushBtn = e.target.closest('[data-push]');
   const doneBtn = e.target.closest('[data-done]');
@@ -1101,38 +1168,61 @@ document.getElementById('orders').addEventListener('click', async (e) => {
     const id = Number(copyBtn.dataset.copy);
     const order = orders.find(o => Number(o.id) === id);
     if(order) await copyOrder(order, copyBtn);
+    return;
   }
 
   if(pushBtn){
     const id = Number(pushBtn.dataset.push);
     const order = orders.find(o => Number(o.id) === id);
     if(order) await sendPushForOrder(order);
+    return;
   }
 
   if(doneBtn){
     const id = Number(doneBtn.dataset.done);
-    const ok = await patchStatus(id, 'done');
-    if(ok) await loadOrders();
+    const btn = doneBtn;
+    const old = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Сохраняю...';
+
+    try{
+      await patchStatus(id, 'done');
+      render();
+      showNotice(`Заказ #${id} отмечен как обработан`);
+    }catch(e){
+      alert(e.message || 'Не удалось изменить статус');
+    }finally{
+      btn.disabled = false;
+      btn.textContent = old;
+    }
+    return;
   }
 
   if(cancelBtn){
     const id = Number(cancelBtn.dataset.cancel);
-    const ok = await patchStatus(id, 'cancelled');
-    if(ok) await loadOrders();
+    const btn = cancelBtn;
+    const old = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Сохраняю...';
+
+    try{
+      await patchStatus(id, 'cancelled');
+      render();
+      showNotice(`Заказ #${id} отменён`);
+    }catch(e){
+      alert(e.message || 'Не удалось изменить статус');
+    }finally{
+      btn.disabled = false;
+      btn.textContent = old;
+    }
   }
 });
 
 async function init(){
-  await loadProducts();
-  await loadOrders();
-  await loadPushStats();
-  await loadLiveStats();
+  await refreshAll(true);
 
   setInterval(async () => {
-    await loadProducts();
-    await loadOrders();
-    await loadPushStats();
-    await loadLiveStats();
+    await refreshAll(false);
   }, 3000);
 }
 
