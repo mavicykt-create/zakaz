@@ -447,24 +447,68 @@
     0%,100%{opacity:1}
     50%{opacity:.35}
   }
-
   .msg{
+    position:fixed;
+    left:12px;
+    right:12px;
+    top:calc(12px + env(safe-area-inset-top, 0px));
+    z-index:10020;
     display:none;
-    margin-top:12px;
-    padding:16px 18px;
-    border-radius:20px;
-    background:var(--success-bg);
+    max-width:420px;
+    margin:0 auto;
+    padding:14px 16px;
+    border-radius:22px;
+    background:rgba(255,255,255,.68);
     color:var(--success);
     font-size:15px;
     font-weight:700;
-    line-height:1.45;
-    box-shadow:0 10px 24px rgba(4,120,87,.08);
+    line-height:1.42;
+    border:1px solid rgba(255,255,255,.78);
+    backdrop-filter:blur(22px) saturate(1.15);
+    -webkit-backdrop-filter:blur(22px) saturate(1.15);
+    box-shadow:
+      0 18px 40px rgba(15,23,42,.12),
+      inset 0 1px 0 rgba(255,255,255,.72);
+    transform:translateY(-12px);
+    opacity:0;
+    pointer-events:none;
+  }
+
+  .msg.show{
+    display:block;
+    animation:toastIn .28s ease forwards;
+  }
+
+  .msg.hide{
+    display:block;
+    animation:toastOut .22s ease forwards;
   }
 
   .msg strong{
     font-size:16px;
   }
 
+  @keyframes toastIn{
+    from{
+      transform:translateY(-12px);
+      opacity:0;
+    }
+    to{
+      transform:translateY(0);
+      opacity:1;
+    }
+  }
+
+  @keyframes toastOut{
+    from{
+      transform:translateY(0);
+      opacity:1;
+    }
+    to{
+      transform:translateY(-8px);
+      opacity:0;
+    }
+  }
   .modal{
     position:fixed;
     inset:0;
@@ -810,9 +854,10 @@
       </button>
     </div>
 
-    <div class="msg" id="message"></div>
   </div>
 </div>
+
+<div class="msg" id="message"></div>
 
 <div class="modal" id="commentModal">
   <div class="sheet">
@@ -899,6 +944,7 @@ const elSubmit = document.getElementById('submit');
 const elFeedDot = document.getElementById('feedDot');
 const elFeedStatusText = document.getElementById('feedStatusText');
 const okKeySelector = '.key.ok';
+elMsg.addEventListener('click', () => hideMessageToast(false));
 
 function beepSuccess(freq){
   try{
@@ -1136,7 +1182,7 @@ function sync(){
 }
 
 function addDigit(d){
-  elMsg.style.display = 'none';
+  hideMessageToast(true);
   elDisplay.classList.remove('invalid');
   elPreviewPanel.classList.remove('invalid');
 
@@ -1191,10 +1237,45 @@ function clearCart(){
   rows = [];
   current = '';
   elComment.value = '';
-  elMsg.style.display = 'none';
+  hideMessageToast(true);
   elDisplay.classList.remove('invalid');
   elPreviewPanel.classList.remove('invalid');
   sync();
+}
+
+
+let messageTimer = null;
+
+function hideMessageToast(immediate = false){
+  clearTimeout(messageTimer);
+
+  if(immediate){
+    elMsg.classList.remove('show', 'hide');
+    hideMessageToast(true);
+    return;
+  }
+
+  if(elMsg.style.display === 'none' || !elMsg.classList.contains('show')) return;
+
+  elMsg.classList.remove('show');
+  elMsg.classList.add('hide');
+
+  setTimeout(() => {
+    elMsg.classList.remove('hide');
+    hideMessageToast(true);
+  }, 220);
+}
+
+function showMessageToast(html){
+  clearTimeout(messageTimer);
+  elMsg.innerHTML = html;
+  elMsg.style.display = 'block';
+  elMsg.classList.remove('hide');
+  elMsg.classList.add('show');
+
+  messageTimer = setTimeout(() => {
+    hideMessageToast(false);
+  }, 3200);
 }
 
 async function send(){
@@ -1236,11 +1317,10 @@ async function send(){
 
     const orderId = data.orderId || '—';
 
-    elMsg.innerHTML = `
+    showMessageToast(`
       <strong>Ваш заказ №${escapeHtml(orderId)} на сумму: ${escapeHtml(orderSum.toLocaleString('ru-RU'))} ₽.</strong><br>
       Спасибо за заказ! 💚
-    `;
-    elMsg.style.display = 'block';
+    `);
 
     rows = [];
     current = '';
