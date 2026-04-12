@@ -119,7 +119,9 @@
     box-shadow:0 14px 28px rgba(17,24,39,.16);
   }
 
-  .badge.dark b{ color:#fff; }
+  .badge.dark b{
+    color:#fff;
+  }
 
   .panel{
     padding:14px 16px;
@@ -163,7 +165,9 @@
     text-overflow:ellipsis;
   }
 
-  .preview-empty{ color:#9ca3af; }
+  .preview-empty{
+    color:#9ca3af;
+  }
 
   .preview-qty{
     min-width:28px;
@@ -289,7 +293,9 @@
     font-size:24px;
   }
 
-  .key.ok.dimmed{ opacity:.45; }
+  .key.ok.dimmed{
+    opacity:.45;
+  }
 
   .meta{
     display:flex;
@@ -318,7 +324,7 @@
 
   .toolbar{
     display:grid;
-    grid-template-columns:1fr auto;
+    grid-template-columns:1fr auto auto;
     gap:10px;
   }
 
@@ -335,7 +341,10 @@
     box-shadow:0 16px 32px rgba(17,24,39,.18);
   }
 
-  .submit:disabled{ opacity:.65; cursor:not-allowed; }
+  .submit:disabled{
+    opacity:.65;
+    cursor:not-allowed;
+  }
 
   .comment-btn{
     min-width:64px;
@@ -416,7 +425,9 @@
     z-index:1000;
   }
 
-  .modal.open{ display:flex; }
+  .modal.open{
+    display:flex;
+  }
 
   .sheet{
     width:100%;
@@ -573,8 +584,145 @@
     font-weight:600;
   }
 
-  .badge.dark:active,.icon-btn:active,.key:active,.submit:active,.comment-btn:active,.sheet-btn:active,.item-row-btn:active{
+  .badge.dark:active,
+  .icon-btn:active,
+  .key:active,
+  .submit:active,
+  .comment-btn:active,
+  .sheet-btn:active,
+  .item-row-btn:active{
     transform:scale(.97);
+  }
+
+  .pwa-hint{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:20px;
+    display:flex;
+    justify-content:center;
+    z-index:9999;
+    pointer-events:none;
+  }
+
+  .pwa-card{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:calc(100% - 24px);
+    max-width:420px;
+    padding:14px 16px;
+    border-radius:24px;
+    background:rgba(255,255,255,.58);
+    backdrop-filter:blur(22px) saturate(1.2);
+    -webkit-backdrop-filter:blur(22px) saturate(1.2);
+    border:1px solid rgba(255,255,255,.72);
+    box-shadow:
+      0 20px 50px rgba(15,23,42,.14),
+      inset 0 1px 0 rgba(255,255,255,.7);
+    pointer-events:auto;
+    animation:pwaFadeIn .35s ease, pwaBounce 1.9s ease-in-out infinite .45s;
+  }
+
+  @keyframes pwaFadeIn{
+    from{
+      transform:translateY(16px);
+      opacity:0;
+    }
+    to{
+      transform:translateY(0);
+      opacity:1;
+    }
+  }
+
+  @keyframes pwaBounce{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(-4px); }
+  }
+
+  .pwa-icon{
+    width:44px;
+    height:44px;
+    border-radius:12px;
+    object-fit:cover;
+    box-shadow:0 8px 18px rgba(15,23,42,.14);
+    flex:0 0 44px;
+  }
+
+  .pwa-text{
+    flex:1;
+    min-width:0;
+  }
+
+  .pwa-title{
+    font-size:14px;
+    font-weight:800;
+    color:#111827;
+    line-height:1.2;
+  }
+
+  .pwa-sub{
+    margin-top:3px;
+    font-size:13px;
+    line-height:1.35;
+    color:#6b7280;
+  }
+
+  .pwa-close{
+    border:0;
+    background:rgba(255,255,255,.45);
+    width:30px;
+    height:30px;
+    border-radius:999px;
+    color:#6b7280;
+    font-size:16px;
+    cursor:pointer;
+    flex:0 0 30px;
+  }
+
+  .pwa-close:active{
+    transform:scale(.96);
+  }
+
+  .share-icon{
+    display:inline-block;
+    width:18px;
+    height:18px;
+    vertical-align:-3px;
+    margin:0 2px;
+    background:no-repeat center/contain url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23111827" d="M12 3l4 4h-2.5v6h-3V7H8l4-4zm-6 9h2v6h8v-6h2v8H6v-8z"/></svg>');
+  }
+
+  .pwa-arrow{
+    position:absolute;
+    right:26px;
+    bottom:92px;
+    width:34px;
+    height:34px;
+    opacity:.9;
+    animation:pwaArrowFloat 1.4s ease-in-out infinite;
+    pointer-events:none;
+  }
+
+  .pwa-arrow::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:no-repeat center/contain url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M14 50 C28 44, 36 32, 42 16" fill="none" stroke="%23111827" stroke-width="4.5" stroke-linecap="round"/><path d="M34 16h8v8" fill="none" stroke="%23111827" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+  }
+
+  @keyframes pwaArrowFloat{
+    0%,100%{ transform:translateY(0); opacity:.85; }
+    50%{ transform:translateY(-5px); opacity:1; }
+  }
+
+  @media (max-width:390px){
+    .pwa-arrow{
+      right:18px;
+      bottom:96px;
+      width:30px;
+      height:30px;
+    }
   }
 </style>
 </head>
@@ -655,6 +803,20 @@
     <div class="sheet-actions">
       <button type="button" class="sheet-btn primary" id="closeItems">Готово</button>
     </div>
+  </div>
+</div>
+
+<div id="pwaHint" class="pwa-hint" style="display:none;">
+  <div class="pwa-arrow"></div>
+  <div class="pwa-card">
+    <img src="/icon-192.png" class="pwa-icon" alt="Сладкая планета" />
+    <div class="pwa-text">
+      <div class="pwa-title">Установите приложение</div>
+      <div class="pwa-sub">
+        Нажмите <span class="share-icon"></span> и выберите «На экран Домой»
+      </div>
+    </div>
+    <button class="pwa-close" onclick="closePwaHint()">✕</button>
   </div>
 </div>
 
@@ -1090,19 +1252,8 @@ document.getElementById('itemsList').addEventListener('click', function(e){
 loadPrices();
 sync();
 </script>
+
 <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-      try {
-        await navigator.serviceWorker.register('/service-worker.js');
-        console.log('Service Worker зарегистрирован');
-      } catch (error) {
-        console.error('Ошибка регистрации Service Worker:', error);
-      }
-    });
-  }
-</script>
-  <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
       try {
@@ -1122,146 +1273,87 @@ sync();
   }
 
   async function subscribePush() {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return alert('Нет разрешения');
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        alert('Нет разрешения на уведомления');
+        return;
+      }
 
-    const reg = await navigator.serviceWorker.ready;
+      const reg = await navigator.serviceWorker.ready;
+      const res = await fetch('/api/push/config');
+      const data = await res.json();
 
-    const res = await fetch('/api/push/config');
-    const { publicKey } = await res.json();
+      if (!data.publicKey) {
+        alert('На сервере не настроен push');
+        return;
+      }
 
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey)
-    });
+      const existingSub = await reg.pushManager.getSubscription();
+      let sub = existingSub;
 
-    await fetch('/api/push/subscribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(sub)
-    });
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(data.publicKey)
+        });
+      }
 
-    alert('Push включен');
+      await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sub)
+      });
+
+      alert('Push включен');
+    } catch (e) {
+      console.error(e);
+      alert('Не удалось включить push');
+    }
   }
 </script>
-  <!-- PWA install banner -->
-<div id="pwa-install-banner" class="pwa-banner hidden">
-  <div class="pwa-banner__text">
-    <div class="pwa-banner__title">Установите приложение</div>
-    <div class="pwa-banner__desc" id="pwa-install-text">
-      Открывайте заказ быстрее, прямо с главного экрана телефона.
-    </div>
-  </div>
-
-  <div class="pwa-banner__actions">
-    <button id="pwa-install-btn" class="pwa-btn">Установить</button>
-    <button id="pwa-close-btn" class="pwa-close" aria-label="Закрыть">✕</button>
-  </div>
-</div>
-
-<style>
-  .pwa-banner{
-    position: fixed;
-    left: 12px;
-    right: 12px;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    z-index: 9999;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px;
-    border-radius: 18px;
-    background: rgba(17,17,17,.96);
-    color: #fff;
-    box-shadow: 0 12px 30px rgba(0,0,0,.22);
-    backdrop-filter: blur(10px);
-  }
-
-  .pwa-banner.hidden{
-    display: none;
-  }
-
-  .pwa-banner__text{
-    flex: 1;
-    min-width: 0;
-  }
-
-  .pwa-banner__title{
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: 4px;
-  }
-
-  .pwa-banner__desc{
-    font-size: 13px;
-    line-height: 1.35;
-    opacity: .92;
-  }
-
-  .pwa-banner__actions{
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .pwa-btn{
-    border: 0;
-    border-radius: 12px;
-    padding: 10px 14px;
-    font-size: 14px;
-    font-weight: 700;
-    background: #ffffff;
-    color: #111;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-
-  .pwa-close{
-    border: 0;
-    background: transparent;
-    color: #fff;
-    font-size: 18px;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    opacity: .85;
-  }
-
-  @media (max-width: 520px){
-    .pwa-banner{
-      align-items: flex-start;
-    }
-
-    .pwa-banner__actions{
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .pwa-btn{
-      width: 100%;
-    }
-  }
-</style>
 
 <script>
- <div id="pwaHint" class="pwa-hint" style="display:none;">
-  <div class="pwa-arrow"></div>
+  let pwaHintTimer = null;
+  let pwaHideTimer = null;
 
-  <div class="pwa-card">
-    <img src="/icon-192.png" class="pwa-icon" alt="Сладкая планета" />
+  function isIos() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent);
+  }
 
-    <div class="pwa-text">
-      <div class="pwa-title">Установите приложение</div>
-      <div class="pwa-sub">
-        Нажмите <span class="share-icon"></span> и выберите «На экран Домой»
-      </div>
-    </div>
+  function isInStandaloneMode() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  }
 
-    <button class="pwa-close" onclick="closePwaHint()">✕</button>
-  </div>
-</div>
+  function showPwaHint() {
+    const hint = document.getElementById('pwaHint');
+    if (!hint) return;
+    if (!isIos()) return;
+    if (isInStandaloneMode()) return;
+    if (localStorage.getItem('pwaHintClosed') === '1') return;
+
+    hint.style.display = 'flex';
+
+    clearTimeout(pwaHideTimer);
+    pwaHideTimer = setTimeout(() => {
+      closePwaHint(false);
+    }, 5000);
+  }
+
+  function closePwaHint(save = true) {
+    const hint = document.getElementById('pwaHint');
+    if (!hint) return;
+
+    hint.style.display = 'none';
+    clearTimeout(pwaHideTimer);
+
+    if (save) {
+      localStorage.setItem('pwaHintClosed', '1');
+    }
+  }
+
+  clearTimeout(pwaHintTimer);
+  pwaHintTimer = setTimeout(showPwaHint, 1800);
 </script>
 </body>
 </html>
