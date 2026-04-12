@@ -324,7 +324,7 @@
 
   .toolbar{
     display:grid;
-    grid-template-columns:1fr auto auto;
+    grid-template-columns:1fr auto;
     gap:10px;
   }
 
@@ -347,17 +347,64 @@
   }
 
   .comment-btn{
-    min-width:64px;
+    min-width:58px;
+    width:58px;
     min-height:58px;
-    padding:0 18px;
+    padding:0;
     border-radius:24px;
     border:1px solid #dbe2ea;
-    background:#fff;
+    background:rgba(255,255,255,.92);
     color:var(--ink);
     font-size:18px;
     font-weight:700;
     cursor:pointer;
     box-shadow:0 10px 24px rgba(15,23,42,.05);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+
+  .menu-lines{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+  }
+
+  .menu-lines span{
+    display:block;
+    width:20px;
+    height:2px;
+    border-radius:999px;
+    background:linear-gradient(180deg,var(--primary-2) 0%, var(--primary) 100%);
+  }
+
+  .menu-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .menu-item{
+    width:100%;
+    min-height:56px;
+    border:1px solid var(--line);
+    border-radius:20px;
+    background:#fbfcfd;
+    color:var(--ink);
+    padding:14px 16px;
+    text-align:left;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  .menu-item small{
+    display:block;
+    margin-top:4px;
+    color:var(--muted);
+    font-size:13px;
+    font-weight:600;
   }
 
   .feedstatus{
@@ -770,8 +817,9 @@
 
     <div class="toolbar">
       <button type="button" class="submit" id="submit">Отправить заявку</button>
-      <button type="button" class="comment-btn" id="openComment">💬</button>
-      <button type="button" class="comment-btn" onclick="subscribePush()">🔔</button>
+      <button type="button" class="comment-btn" id="openMenu" aria-label="Открыть меню">
+        <span class="menu-lines"><span></span><span></span><span></span></span>
+      </button>
     </div>
 
     <div class="msg" id="message"></div>
@@ -802,6 +850,23 @@
     <div class="items-list" id="itemsList"></div>
     <div class="sheet-actions">
       <button type="button" class="sheet-btn primary" id="closeItems">Готово</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="menuModal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3 class="sheet-title">Меню</h3>
+    <div class="menu-list">
+      <button type="button" class="menu-item" id="menuComment">Комментарий к заказу<small>Добавить или изменить комментарий</small></button>
+      <button type="button" class="menu-item" id="menuInstall">Установить приложение<small>Добавить на главный экран телефона</small></button>
+      <button type="button" class="menu-item" id="menuPush">Подписка на уведомления<small>Включить push-уведомления</small></button>
+      <button type="button" class="menu-item" id="menuInstructions">Инструкция<small>Как пользоваться мобильным заказом</small></button>
+      <button type="button" class="menu-item" id="menuNews">Новости<small>Информация о новинках и обновлениях</small></button>
+    </div>
+    <div class="sheet-actions">
+      <button type="button" class="sheet-btn primary" id="closeMenu">Закрыть</button>
     </div>
   </div>
 </div>
@@ -1233,13 +1298,48 @@ document.getElementById('clearCartBtn').onclick = ()=>{
   document.getElementById('itemsModal').classList.remove('open');
 };
 
-document.getElementById('openComment').onclick = ()=>{
+function openCommentModal(){
   document.getElementById('commentModal').classList.add('open');
   setTimeout(()=>elComment.focus(),50);
-};
-document.getElementById('closeComment').onclick = ()=>document.getElementById('commentModal').classList.remove('open');
-document.getElementById('saveComment').onclick = ()=>{
+}
+
+function closeCommentModal(){
   document.getElementById('commentModal').classList.remove('open');
+}
+
+function openMenuModal(){
+  document.getElementById('menuModal').classList.add('open');
+}
+
+function closeMenuModal(){
+  document.getElementById('menuModal').classList.remove('open');
+}
+
+function openInstallHelp(){
+  closeMenuModal();
+  showPwaHint(true);
+}
+
+function openInstructions(){
+  closeMenuModal();
+  alert('Введите 4 цифры артикула и дождитесь автодобавления или нажмите OK. Все позиции можно проверить и изменить в корзине.');
+}
+
+function openNews(){
+  closeMenuModal();
+  alert('Раздел новостей пока в разработке. Позже сюда можно добавить акции, новинки и важные уведомления.');
+}
+
+document.getElementById('openMenu').onclick = openMenuModal;
+document.getElementById('closeMenu').onclick = closeMenuModal;
+document.getElementById('menuComment').onclick = ()=>{ closeMenuModal(); openCommentModal(); };
+document.getElementById('menuInstall').onclick = openInstallHelp;
+document.getElementById('menuPush').onclick = ()=>{ closeMenuModal(); subscribePush(); };
+document.getElementById('menuInstructions').onclick = openInstructions;
+document.getElementById('menuNews').onclick = openNews;
+document.getElementById('closeComment').onclick = closeCommentModal;
+document.getElementById('saveComment').onclick = ()=>{
+  closeCommentModal();
   sync();
 };
 
@@ -1325,12 +1425,31 @@ sync();
     return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   }
 
-  function showPwaHint() {
+  let deferredInstallPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+  });
+
+  async function triggerInstallPrompt() {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      try {
+        await deferredInstallPrompt.userChoice;
+      } catch (e) {}
+      deferredInstallPrompt = null;
+      return true;
+    }
+    return false;
+  }
+
+  function showPwaHint(force = false) {
     const hint = document.getElementById('pwaHint');
     if (!hint) return;
     if (!isIos()) return;
     if (isInStandaloneMode()) return;
-    if (localStorage.getItem('pwaHintClosed') === '1') return;
+    if (!force && localStorage.getItem('pwaHintClosed') === '1') return;
 
     hint.style.display = 'flex';
 
@@ -1351,6 +1470,29 @@ sync();
       localStorage.setItem('pwaHintClosed', '1');
     }
   }
+
+  window.addEventListener('appinstalled', () => {
+    closePwaHint(false);
+  });
+
+  document.getElementById('menuModal').addEventListener('click', function(e){
+    if (e.target === this) closeMenuModal();
+  });
+
+  document.getElementById('commentModal').addEventListener('click', function(e){
+    if (e.target === this) closeCommentModal();
+  });
+
+  document.getElementById('itemsModal').addEventListener('click', function(e){
+    if (e.target === this) this.classList.remove('open');
+  });
+
+  const _oldOpenInstallHelp = openInstallHelp;
+  openInstallHelp = async function(){
+    closeMenuModal();
+    const shown = await triggerInstallPrompt();
+    if (!shown) showPwaHint(true);
+  };
 
   clearTimeout(pwaHintTimer);
   pwaHintTimer = setTimeout(showPwaHint, 1800);
