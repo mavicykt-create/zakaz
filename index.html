@@ -1246,97 +1246,22 @@ sync();
 </style>
 
 <script>
-  let deferredPrompt = null;
+ <div id="pwaHint" class="pwa-hint" style="display:none;">
+  <div class="pwa-arrow"></div>
 
-  const banner = document.getElementById('pwa-install-banner');
-  const installBtn = document.getElementById('pwa-install-btn');
-  const closeBtn = document.getElementById('pwa-close-btn');
-  const installText = document.getElementById('pwa-install-text');
+  <div class="pwa-card">
+    <img src="/icon-192.png" class="pwa-icon" alt="Сладкая планета" />
 
-  const ua = window.navigator.userAgent || '';
-  const isIos = /iphone|ipad|ipod/i.test(ua);
-  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-  const isStandalone =
-    window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true;
+    <div class="pwa-text">
+      <div class="pwa-title">Установите приложение</div>
+      <div class="pwa-sub">
+        Нажмите <span class="share-icon"></span> и выберите «На экран Домой»
+      </div>
+    </div>
 
-  const bannerClosedKey = 'pwaBannerClosed_v1';
-  const appInstalledKey = 'pwaInstalled_v1';
-
-  function shouldHideBanner() {
-    return (
-      localStorage.getItem(bannerClosedKey) === '1' ||
-      localStorage.getItem(appInstalledKey) === '1' ||
-      isStandalone
-    );
-  }
-
-  function showBanner() {
-    if (!shouldHideBanner()) {
-      banner.classList.remove('hidden');
-    }
-  }
-
-  function hideBanner(saveState = false) {
-    banner.classList.add('hidden');
-    if (saveState) {
-      localStorage.setItem(bannerClosedKey, '1');
-    }
-  }
-
-  closeBtn.addEventListener('click', () => {
-    hideBanner(true);
-  });
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-
-    if (!isIos && !isStandalone && !shouldHideBanner()) {
-      installBtn.style.display = '';
-      installBtn.textContent = 'Установить';
-      installText.textContent = 'Открывайте заказ быстрее, прямо с главного экрана телефона.';
-      setTimeout(showBanner, 4000);
-    }
-  });
-
-  installBtn.addEventListener('click', async () => {
-    if (isIos) {
-      installBtn.style.display = 'none';
-      installText.innerHTML = isSafari
-        ? 'Нажмите <b>Поделиться</b>, затем <b>На экран «Домой»</b> и <b>Добавить</b>.'
-        : 'Для установки откройте сайт в <b>Safari</b>, затем нажмите <b>Поделиться</b> → <b>На экран «Домой»</b>.';
-      showBanner();
-      return;
-    }
-
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const result = await deferredPrompt.userChoice;
-
-    if (result.outcome === 'accepted') {
-      localStorage.setItem(appInstalledKey, '1');
-      hideBanner(false);
-    }
-
-    deferredPrompt = null;
-  });
-
-  window.addEventListener('appinstalled', () => {
-    localStorage.setItem(appInstalledKey, '1');
-    hideBanner(false);
-  });
-
-  // iPhone/iPad: показываем понятную подсказку
-  if (isIos && !isStandalone && !shouldHideBanner()) {
-    installBtn.style.display = '';
-    installBtn.textContent = 'Как установить';
-    installText.innerHTML = isSafari
-      ? 'Добавьте приложение на главный экран телефона.'
-      : 'Откройте сайт в <b>Safari</b>, чтобы добавить его на главный экран.';
-    showBanner();
-  }
+    <button class="pwa-close" onclick="closePwaHint()">✕</button>
+  </div>
+</div>
 </script>
 </body>
 </html>
