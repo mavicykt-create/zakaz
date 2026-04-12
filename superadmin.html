@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Заказы — Сладкая планета</title>
+<title>Superadmin — Сладкая планета</title>
 
 <style>
 :root{
@@ -12,36 +12,49 @@
   --ink:#111827;
   --muted:#6b7280;
   --line:#e5e7eb;
+
   --blue:#2563eb;
   --green:#16a34a;
   --red:#dc2626;
-  --yellow:#d97706;
-  --yellow-bg:#fff7ed;
+  --orange:#d97706;
+
+  --blue-bg:#eff6ff;
   --green-bg:#ecfdf5;
   --red-bg:#fef2f2;
+  --orange-bg:#fff7ed;
+  --gray-bg:#f9fafb;
+
   --shadow:0 10px 30px rgba(17,24,39,.07);
+  --radius:18px;
 }
 
-*{ box-sizing:border-box; }
+*{
+  box-sizing:border-box;
+}
 
-body{
+html,body{
   margin:0;
+  padding:0;
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
   background:var(--bg);
   color:var(--ink);
 }
 
+body{
+  min-height:100vh;
+}
+
 .wrap{
-  max-width:1200px;
+  max-width:1380px;
   margin:0 auto;
-  padding:16px;
+  padding:18px;
 }
 
 .top{
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  gap:12px;
+  align-items:flex-start;
+  gap:14px;
   margin-bottom:16px;
   flex-wrap:wrap;
 }
@@ -54,8 +67,9 @@ body{
 
 h1{
   margin:0;
-  font-size:28px;
+  font-size:32px;
   line-height:1;
+  letter-spacing:-0.03em;
 }
 
 .sub{
@@ -71,12 +85,17 @@ h1{
 
 .btn{
   min-height:44px;
-  padding:10px 14px;
+  padding:11px 15px;
   border-radius:12px;
   border:0;
-  font-weight:700;
   font-size:14px;
+  font-weight:700;
   cursor:pointer;
+  transition:.15s ease;
+}
+
+.btn:active{
+  transform:scale(.98);
 }
 
 .btn.dark{ background:#111827; color:#fff; }
@@ -84,21 +103,22 @@ h1{
 .btn.green{ background:var(--green); color:#fff; }
 .btn.red{ background:var(--red); color:#fff; }
 .btn.gray{ background:#e5e7eb; color:#111827; }
+.btn.orange{ background:var(--orange); color:#fff; }
 
-.search{
-  width:100%;
+.notice{
+  display:none;
+  margin-bottom:16px;
   padding:14px 16px;
   border-radius:14px;
-  border:1px solid var(--line);
-  background:#fff;
-  font-size:15px;
-  margin-bottom:16px;
+  background:var(--green-bg);
+  color:#166534;
+  font-weight:700;
   box-shadow:var(--shadow);
 }
 
 .stats{
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:repeat(7,minmax(0,1fr));
   gap:12px;
   margin-bottom:16px;
 }
@@ -117,20 +137,159 @@ h1{
 }
 
 .stat-value{
-  font-size:28px;
+  font-size:26px;
   font-weight:800;
   line-height:1;
 }
 
-.notice{
-  display:none;
-  margin-bottom:16px;
-  padding:14px 16px;
+.layout{
+  display:grid;
+  grid-template-columns:380px 1fr;
+  gap:16px;
+}
+
+.side{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  position:sticky;
+  top:16px;
+  align-self:start;
+}
+
+.panel{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+}
+
+.panel-title{
+  margin:0 0 12px;
+  font-size:20px;
+  line-height:1.1;
+  letter-spacing:-0.02em;
+}
+
+.search{
+  width:100%;
+  min-height:46px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:0 14px;
+  font-size:15px;
+  background:#fff;
+}
+
+.filters{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+
+.toggle{
+  min-height:44px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--ink);
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.toggle.active{
+  background:#111827;
+  color:#fff;
+  border-color:#111827;
+}
+
+.push-stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.push-stat{
+  border:1px solid var(--line);
   border-radius:14px;
+  padding:12px;
+  background:var(--gray-bg);
+}
+
+.push-stat small{
+  display:block;
+  color:var(--muted);
+  margin-bottom:6px;
+  font-size:12px;
+}
+
+.push-stat strong{
+  font-size:20px;
+  line-height:1;
+}
+
+.field{
+  margin-bottom:10px;
+}
+
+.field:last-child{
+  margin-bottom:0;
+}
+
+.field input,
+.field textarea{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px 14px;
+  font-size:14px;
+  font-family:inherit;
+  background:#fff;
+}
+
+.field textarea{
+  min-height:110px;
+  resize:vertical;
+}
+
+.push-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+
+.push-actions .btn{
+  width:100%;
+}
+
+.push-result{
+  display:none;
+  margin-top:12px;
+  padding:12px 14px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:700;
+  line-height:1.45;
+}
+
+.push-result.ok{
+  display:block;
   background:var(--green-bg);
   color:#166534;
-  font-weight:700;
-  box-shadow:var(--shadow);
+}
+
+.push-result.error{
+  display:block;
+  background:var(--red-bg);
+  color:#b91c1c;
+}
+
+.orders-wrap{
+  min-width:0;
 }
 
 .orders{
@@ -139,55 +298,59 @@ h1{
   gap:14px;
 }
 
+.empty{
+  background:#fff;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:40px 20px;
+  text-align:center;
+  color:var(--muted);
+}
+
 .order{
   background:var(--card);
-  border-radius:18px;
-  padding:16px;
+  border-radius:var(--radius);
   box-shadow:var(--shadow);
+  padding:16px;
   border-left:6px solid #d1d5db;
 }
 
 .order.new{
-  border-left-color:var(--yellow);
+  border-left-color:var(--orange);
 }
 
 .order.done{
   border-left-color:var(--green);
-  opacity:.92;
+  opacity:.94;
 }
 
 .order.cancelled{
   border-left-color:var(--red);
-  opacity:.82;
+  opacity:.84;
 }
 
-.head{
+.order-head{
   display:flex;
   justify-content:space-between;
   gap:12px;
-  margin-bottom:12px;
   align-items:flex-start;
   flex-wrap:wrap;
+  margin-bottom:12px;
 }
 
-.head-left{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-
-.id{
-  font-size:22px;
+.order-title{
+  font-size:24px;
   font-weight:800;
   line-height:1;
+  margin-bottom:6px;
 }
 
-.time{
+.order-time{
   font-size:13px;
   color:var(--muted);
 }
 
-.badges{
+.order-badges{
   display:flex;
   gap:8px;
   flex-wrap:wrap;
@@ -201,7 +364,7 @@ h1{
 }
 
 .badge.new{
-  background:var(--yellow-bg);
+  background:var(--orange-bg);
   color:#9a3412;
 }
 
@@ -216,34 +379,40 @@ h1{
 }
 
 .badge.sum{
-  background:#eff6ff;
+  background:var(--blue-bg);
   color:#1d4ed8;
 }
 
-.comment{
-  margin-bottom:12px;
-  padding:12px 14px;
-  border-radius:14px;
-  background:#f9fafb;
-  border:1px solid var(--line);
-  font-size:14px;
+.order-grid{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:14px;
 }
 
-.comment.empty{
-  color:var(--muted);
-}
-
-.items{
+.box{
   border:1px solid var(--line);
   border-radius:14px;
   overflow:hidden;
   background:#fff;
 }
 
+.box-title{
+  padding:12px 14px;
+  font-size:14px;
+  font-weight:800;
+  border-bottom:1px solid var(--line);
+  background:var(--gray-bg);
+}
+
+.rows{
+  display:flex;
+  flex-direction:column;
+}
+
 .row{
   display:grid;
-  grid-template-columns:1.2fr .7fr .8fr .8fr;
-  gap:12px;
+  grid-template-columns:1.2fr .6fr .8fr .8fr;
+  gap:10px;
   padding:12px 14px;
   border-bottom:1px solid var(--line);
   align-items:center;
@@ -261,76 +430,103 @@ h1{
 }
 
 .article{
-  font-weight:800;
   font-size:18px;
+  font-weight:800;
 }
 
-.qty,
-.price,
-.line-sum{
+.qty,.price,.line-sum{
   font-weight:700;
 }
 
-.actions{
-  margin-top:12px;
+.meta{
+  padding:14px;
+}
+
+.meta-row{
+  margin-bottom:12px;
+  font-size:14px;
+}
+
+.meta-row:last-child{
+  margin-bottom:0;
+}
+
+.meta-label{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+  margin-bottom:5px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+
+.raw{
+  white-space:pre-wrap;
+  background:var(--gray-bg);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px 12px;
+  line-height:1.4;
+}
+
+.order-actions{
   display:flex;
   gap:8px;
   flex-wrap:wrap;
+  margin-top:14px;
 }
 
-.empty{
-  text-align:center;
-  color:var(--muted);
-  padding:40px 20px;
-  background:#fff;
-  border-radius:18px;
-  box-shadow:var(--shadow);
+.order-actions .btn{
+  min-width:120px;
 }
 
-@media (max-width:900px){
+@media (max-width:1280px){
+  .stats{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+}
+
+@media (max-width:1120px){
+  .layout{
+    grid-template-columns:1fr;
+  }
+
+  .side{
+    position:static;
+  }
+}
+
+@media (max-width:860px){
   .stats{
     grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .order-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width:640px){
+  .filters,
+  .push-actions{
+    grid-template-columns:1fr;
   }
 
   .row{
     grid-template-columns:1fr .7fr;
   }
 
-  .row.headline .price,
-  .row.headline .line-sum,
   .row .price,
-  .row .line-sum{
+  .row .line-sum,
+  .row.headline .price,
+  .row.headline .line-sum{
     display:none;
   }
-}
 
-@media (max-width:560px){
-  .stats{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .id{
-    font-size:20px;
-  }
-
-  .article{
-    font-size:16px;
-  }
-
-  .btn{
-    width:100%;
-  }
-
-  .top-actions{
-    width:100%;
-  }
-
+  .order-actions .btn,
   .top-actions .btn{
-    flex:1 1 100%;
-  }
-
-  .actions .btn{
-    flex:1 1 100%;
+    width:100%;
   }
 }
 </style>
@@ -339,8 +535,8 @@ h1{
 <div class="wrap">
   <div class="top">
     <div class="top-left">
-      <h1>Заказы</h1>
-      <div class="sub">Новые сверху. Обновление каждые 3 секунды.</div>
+      <h1>Superadmin</h1>
+      <div class="sub">Новые заказы сверху. Автообновление каждые 3 секунды.</div>
     </div>
 
     <div class="top-actions">
@@ -351,11 +547,9 @@ h1{
 
   <div id="notice" class="notice">Поступил новый заказ</div>
 
-  <input class="search" id="search" placeholder="Поиск по ID, артикулу, комментарию..." />
-
   <div class="stats">
     <div class="stat">
-      <div class="stat-label">Всего</div>
+      <div class="stat-label">Всего заказов</div>
       <div class="stat-value" id="statAll">0</div>
     </div>
     <div class="stat">
@@ -367,12 +561,76 @@ h1{
       <div class="stat-value" id="statDone">0</div>
     </div>
     <div class="stat">
-      <div class="stat-label">Последнее обновление</div>
-      <div class="stat-value" id="statTime" style="font-size:18px;">—</div>
+      <div class="stat-label">Отменены</div>
+      <div class="stat-value" id="statCancelled">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Сейчас в заказе</div>
+      <div class="stat-value" id="liveUsers">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Сумма корзин</div>
+      <div class="stat-value" id="liveSum">0 ₽</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Средний чек онлайн</div>
+      <div class="stat-value" id="liveAvg">0 ₽</div>
     </div>
   </div>
 
-  <div id="orders" class="orders"></div>
+  <div class="layout">
+    <aside class="side">
+      <div class="panel">
+        <h2 class="panel-title">Фильтр</h2>
+        <input class="search" id="search" placeholder="Поиск по ID, артикулу, комментарию..." />
+
+        <div class="filters">
+          <button class="toggle" id="showAllBtn">Все заказы</button>
+          <button class="toggle active" id="showOnlyNewBtn">Только новые</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Push-уведомления</h2>
+
+        <div class="push-stats">
+          <div class="push-stat">
+            <small>Push на сервере</small>
+            <strong id="pushEnabled">—</strong>
+          </div>
+          <div class="push-stat">
+            <small>Подписчиков</small>
+            <strong id="pushSubscriptions">0</strong>
+          </div>
+        </div>
+
+        <div class="field">
+          <input id="pushTitle" type="text" value="Сладкая планета" placeholder="Заголовок" />
+        </div>
+
+        <div class="field">
+          <textarea id="pushBody" placeholder="Текст уведомления"></textarea>
+        </div>
+
+        <div class="field">
+          <input id="pushUrl" type="text" value="/" placeholder="Ссылка, например /" />
+        </div>
+
+        <div class="push-actions">
+          <button class="btn gray" id="checkPushBtn">Проверить</button>
+          <button class="btn orange" id="pricePushBtn">Обновление прайса</button>
+          <button class="btn green" id="testPushBtn">Тест</button>
+          <button class="btn dark" id="sendPushBtn">Отправить всем</button>
+        </div>
+
+        <div id="pushResult" class="push-result"></div>
+      </div>
+    </aside>
+
+    <main class="orders-wrap">
+      <div id="orders" class="orders"></div>
+    </main>
+  </div>
 </div>
 
 <script>
@@ -380,6 +638,7 @@ let orders = [];
 let products = {};
 let lastTopOrderId = null;
 let audioUnlocked = false;
+let showOnlyNew = true;
 
 function escapeHtml(value){
   return String(value ?? '')
@@ -440,22 +699,21 @@ function beepNewOrder(){
   }catch(e){}
 }
 
-async function loadProducts(){
-  try{
-    const res = await fetch('/api/products', { cache:'no-store' });
-    products = await res.json();
-  }catch(e){
-    products = {};
-  }
+function showNotice(text){
+  const el = document.getElementById('notice');
+  el.textContent = text;
+  el.style.display = 'block';
+
+  clearTimeout(showNotice._t);
+  showNotice._t = setTimeout(() => {
+    el.style.display = 'none';
+  }, 2500);
 }
 
-function calcOrderSum(order){
-  let s = 0;
-  (order.items || []).forEach(i => {
-    const price = Number(products[i.article]?.price || 0);
-    s += price * Number(i.quantity || 0);
-  });
-  return s;
+function getStatusText(status){
+  if(status === 'done') return 'Обработан';
+  if(status === 'cancelled') return 'Отменён';
+  return 'Новый';
 }
 
 function sortOrders(list){
@@ -474,42 +732,6 @@ function sortOrders(list){
   });
 }
 
-async function loadOrders(){
-  const res = await fetch('/api/orders', { cache:'no-store' });
-  const data = await res.json();
-  const nextOrders = Array.isArray(data.orders) ? data.orders : [];
-  const sortedNext = sortOrders(nextOrders);
-
-  if (sortedNext.length > 0) {
-    const newTopId = sortedNext[0].id;
-    if (lastTopOrderId !== null && newTopId !== lastTopOrderId) {
-      showNotice('Поступил новый заказ');
-      beepNewOrder();
-    }
-    lastTopOrderId = newTopId;
-  }
-
-  orders = sortedNext;
-  render();
-}
-
-function showNotice(text){
-  const el = document.getElementById('notice');
-  el.textContent = text;
-  el.style.display = 'block';
-
-  clearTimeout(showNotice._t);
-  showNotice._t = setTimeout(() => {
-    el.style.display = 'none';
-  }, 2500);
-}
-
-function getStatusText(status){
-  if(status === 'done') return 'Обработан';
-  if(status === 'cancelled') return 'Отменён';
-  return 'Новый';
-}
-
 function getOrderExcelText(order){
   return (order.items || []).map(i => `${i.article}\t${i.quantity}`).join('\n');
 }
@@ -517,19 +739,63 @@ function getOrderExcelText(order){
 async function copyOrder(order, button){
   try{
     await navigator.clipboard.writeText(getOrderExcelText(order));
-    const old = button.textContent;
-    button.textContent = 'Скопировано';
-    button.classList.remove('blue');
-    button.classList.add('green');
 
-    setTimeout(() => {
-      button.textContent = old;
-      button.classList.remove('green');
-      button.classList.add('blue');
-    }, 1200);
+    if(button){
+      const old = button.textContent;
+      const oldClass = button.className;
+      button.textContent = 'Скопировано';
+      button.className = 'btn green';
+
+      setTimeout(() => {
+        button.textContent = old;
+        button.className = oldClass;
+      }, 1200);
+    }
   }catch(e){
     alert('Не удалось скопировать');
   }
+}
+
+async function loadProducts(){
+  try{
+    const res = await fetch('/api/products', { cache:'no-store' });
+    const data = await res.json();
+    products = data && typeof data === 'object' ? data : {};
+  }catch(e){
+    products = {};
+  }
+}
+
+function calcOrderSum(order){
+  let total = 0;
+
+  (order.items || []).forEach(i => {
+    const price = Number(products[i.article]?.price || 0);
+    total += price * Number(i.quantity || 0);
+  });
+
+  return total;
+}
+
+async function loadOrders(){
+  const res = await fetch('/api/orders', { cache:'no-store' });
+  const data = await res.json();
+  const nextOrders = Array.isArray(data.orders) ? data.orders : [];
+  const sorted = sortOrders(nextOrders);
+
+  if (sorted.length > 0) {
+    const newTopId = sorted[0].id;
+
+    if (lastTopOrderId !== null && newTopId !== lastTopOrderId) {
+      showNotice('Поступил новый заказ');
+      beepNewOrder();
+    }
+
+    lastTopOrderId = newTopId;
+  }
+
+  orders = sorted;
+  render();
 }
 
 async function patchStatus(orderId, status){
@@ -549,53 +815,106 @@ async function patchStatus(orderId, status){
   return true;
 }
 
-async function sendPushForOrder(order){
-  const body = `Новый заказ #${order.id}. Позиций: ${order.totalQuantity || 0}. Сумма: ${formatMoney(calcOrderSum(order))}`;
+function setPushResult(message, isError = false){
+  const el = document.getElementById('pushResult');
+  el.className = 'push-result ' + (isError ? 'error' : 'ok');
+  el.textContent = message;
+}
 
+async function loadPushStats(){
+  try{
+    const res = await fetch('/api/push/stats', { cache:'no-store' });
+    const data = await res.json();
+
+    document.getElementById('pushEnabled').textContent = data.enabled ? 'Включён' : 'Выключен';
+    document.getElementById('pushSubscriptions').textContent = data.subscriptions ?? 0;
+  }catch(e){
+    document.getElementById('pushEnabled').textContent = 'Ошибка';
+    document.getElementById('pushSubscriptions').textContent = '—';
+  }
+}
+
+async function loadLiveStats(){
+  try{
+    const res = await fetch('/api/live/stats', { cache:'no-store' });
+    const data = await res.json();
+
+    document.getElementById('liveUsers').textContent = Number(data.users || 0).toLocaleString('ru-RU');
+    document.getElementById('liveSum').textContent = formatMoney(data.total || 0);
+    document.getElementById('liveAvg').textContent = formatMoney(data.avg || 0);
+  }catch(e){
+    document.getElementById('liveUsers').textContent = '—';
+    document.getElementById('liveSum').textContent = '—';
+    document.getElementById('liveAvg').textContent = '—';
+  }
+}
+
+function getPushPayload(){
+  return {
+    title: document.getElementById('pushTitle').value.trim() || 'Сладкая планета',
+    body: document.getElementById('pushBody').value.trim(),
+    url: document.getElementById('pushUrl').value.trim() || '/'
+  };
+}
+
+async function sendPush(payload){
   const res = await fetch('/api/push/send', {
     method:'POST',
     headers:{ 'Content-Type':'application/json' },
-    body:JSON.stringify({
-      title:'Сладкая планета',
-      body,
-      url:'/'
-    })
+    body:JSON.stringify(payload)
   });
 
   const data = await res.json().catch(() => ({}));
 
   if(!res.ok || !data.success){
-    alert(data.error || 'Не удалось отправить push');
-    return;
+    throw new Error(data.error || 'Не удалось отправить push');
   }
 
-  showNotice(`Push отправлен: ${data.sent || 0}`);
+  return data;
+}
+
+async function sendPushForOrder(order){
+  const payload = {
+    title: 'Сладкая планета',
+    body: `Новый заказ #${order.id}. Позиций: ${order.totalQuantity || 0}. Сумма: ${formatMoney(calcOrderSum(order))}`,
+    url: '/'
+  };
+
+  try{
+    const data = await sendPush(payload);
+    await loadPushStats();
+    showNotice(`Push отправлен: ${data.sent ?? 0}`);
+  }catch(e){
+    alert(e.message || 'Ошибка push');
+  }
 }
 
 function render(){
   const root = document.getElementById('orders');
   const q = document.getElementById('search').value.trim().toLowerCase();
 
-  const filtered = orders.filter(o => {
+  document.getElementById('statAll').textContent = orders.length;
+  document.getElementById('statNew').textContent = orders.filter(o => o.status === 'new').length;
+  document.getElementById('statDone').textContent = orders.filter(o => o.status === 'done').length;
+  document.getElementById('statCancelled').textContent = orders.filter(o => o.status === 'cancelled').length;
+
+  const filtered = orders.filter(order => {
+    if (showOnlyNew && order.status !== 'new') return false;
+
     const haystack = [
-      o.id,
-      o.comment,
-      o.customerName,
-      o.customerPhone,
-      o.rawText,
-      ...(o.items || []).map(i => i.article)
+      order.id,
+      order.comment,
+      order.customerName,
+      order.customerPhone,
+      order.rawText,
+      ...(order.items || []).map(i => i.article)
     ].join(' ').toLowerCase();
 
     return !q || haystack.includes(q);
   });
 
-  document.getElementById('statAll').textContent = orders.length;
-  document.getElementById('statNew').textContent = orders.filter(o => o.status === 'new').length;
-  document.getElementById('statDone').textContent = orders.filter(o => o.status === 'done').length;
-  document.getElementById('statTime').textContent = new Date().toLocaleTimeString('ru-RU');
-
   if(!filtered.length){
-    root.innerHTML = '<div class="empty">Нет заказов</div>';
+    root.innerHTML = '<div class="empty">Подходящих заказов нет</div>';
     return;
   }
 
@@ -608,50 +927,76 @@ function render(){
     div.className = 'order ' + (order.status || 'new');
 
     div.innerHTML = `
-      <div class="head">
-        <div class="head-left">
-          <div class="id">#${escapeHtml(order.id)}</div>
-          <div class="time">${escapeHtml(formatDate(order.createdAt))}</div>
+      <div class="order-head">
+        <div>
+          <div class="order-title">#${escapeHtml(order.id)}</div>
+          <div class="order-time">${escapeHtml(formatDate(order.createdAt))}</div>
         </div>
 
-        <div class="badges">
+        <div class="order-badges">
           <div class="badge ${(order.status || 'new')}">${escapeHtml(getStatusText(order.status))}</div>
           <div class="badge sum">${escapeHtml(formatMoney(orderSum))}</div>
         </div>
       </div>
 
-      <div class="comment ${order.comment ? '' : 'empty'}">
-        ${order.comment ? escapeHtml(order.comment) : 'Без комментария'}
-      </div>
+      <div class="order-grid">
+        <div class="box">
+          <div class="box-title">Позиции</div>
+          <div class="rows">
+            <div class="row headline">
+              <div>Артикул</div>
+              <div>Кол-во</div>
+              <div class="price">Цена</div>
+              <div class="line-sum">Сумма</div>
+            </div>
 
-      <div class="items">
-        <div class="row headline">
-          <div>Артикул</div>
-          <div>Количество</div>
-          <div class="price">Цена</div>
-          <div class="line-sum">Сумма</div>
+            ${(order.items || []).map(item => {
+              const price = Number(products[item.article]?.price || 0);
+              const lineSum = price * Number(item.quantity || 0);
+
+              return `
+                <div class="row">
+                  <div class="article">${escapeHtml(item.article)}</div>
+                  <div class="qty">${escapeHtml(item.quantity)}</div>
+                  <div class="price">${escapeHtml(formatMoney(price))}</div>
+                  <div class="line-sum">${escapeHtml(formatMoney(lineSum))}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
         </div>
 
-        ${(order.items || []).map(item => {
-          const price = Number(products[item.article]?.price || 0);
-          const lineSum = price * Number(item.quantity || 0);
-
-          return `
-            <div class="row">
-              <div class="article">${escapeHtml(item.article)}</div>
-              <div class="qty">${escapeHtml(item.quantity)}</div>
-              <div class="price">${escapeHtml(formatMoney(price))}</div>
-              <div class="line-sum">${escapeHtml(formatMoney(lineSum))}</div>
+        <div class="box">
+          <div class="box-title">Информация</div>
+          <div class="meta">
+            <div class="meta-row">
+              <span class="meta-label">Комментарий</span>
+              <div>${order.comment ? escapeHtml(order.comment) : '—'}</div>
             </div>
-          `;
-        }).join('')}
-      </div>
 
-      <div class="actions">
-        <button class="btn blue" data-copy="${order.id}">Копировать</button>
-        ${order.status === 'new' ? `<button class="btn dark" data-push="${order.id}">Push</button>` : ''}
-        ${order.status !== 'done' ? `<button class="btn green" data-done="${order.id}">Готово</button>` : ''}
-        ${order.status !== 'cancelled' ? `<button class="btn red" data-cancel="${order.id}">Отмена</button>` : ''}
+            <div class="meta-row">
+              <span class="meta-label">Клиент</span>
+              <div>${order.customerName ? escapeHtml(order.customerName) : '—'}</div>
+            </div>
+
+            <div class="meta-row">
+              <span class="meta-label">Телефон</span>
+              <div>${order.customerPhone ? escapeHtml(order.customerPhone) : '—'}</div>
+            </div>
+
+            <div class="meta-row">
+              <span class="meta-label">Исходный текст</span>
+              <div class="raw">${order.rawText ? escapeHtml(order.rawText) : '—'}</div>
+            </div>
+
+            <div class="order-actions">
+              <button class="btn blue" data-copy="${order.id}">Копировать</button>
+              ${order.status === 'new' ? `<button class="btn orange" data-push="${order.id}">Push по заказу</button>` : ''}
+              ${order.status !== 'done' ? `<button class="btn green" data-done="${order.id}">Готово</button>` : ''}
+              ${order.status !== 'cancelled' ? `<button class="btn red" data-cancel="${order.id}">Отмена</button>` : ''}
+            </div>
+          </div>
+        </div>
       </div>
     `;
 
@@ -664,9 +1009,25 @@ document.addEventListener('keydown', unlockAudio, { once:true });
 
 document.getElementById('search').addEventListener('input', render);
 
+document.getElementById('showAllBtn').addEventListener('click', () => {
+  showOnlyNew = false;
+  document.getElementById('showAllBtn').classList.add('active');
+  document.getElementById('showOnlyNewBtn').classList.remove('active');
+  render();
+});
+
+document.getElementById('showOnlyNewBtn').addEventListener('click', () => {
+  showOnlyNew = true;
+  document.getElementById('showOnlyNewBtn').classList.add('active');
+  document.getElementById('showAllBtn').classList.remove('active');
+  render();
+});
+
 document.getElementById('refreshBtn').addEventListener('click', async () => {
   await loadProducts();
   await loadOrders();
+  await loadPushStats();
+  await loadLiveStats();
 });
 
 document.getElementById('copyFirstBtn').addEventListener('click', async (e) => {
@@ -677,6 +1038,57 @@ document.getElementById('copyFirstBtn').addEventListener('click', async (e) => {
   }
 
   await copyOrder(firstNew, e.currentTarget);
+});
+
+document.getElementById('checkPushBtn').addEventListener('click', async () => {
+  await loadPushStats();
+  setPushResult('Статистика push обновлена');
+});
+
+document.getElementById('pricePushBtn').addEventListener('click', () => {
+  document.getElementById('pushTitle').value = 'Сладкая планета';
+  document.getElementById('pushBody').value = 'Цены обновлены, можно оформлять заказ';
+  document.getElementById('pushUrl').value = '/';
+  setPushResult('Шаблон "Обновление прайса" подставлен');
+});
+
+document.getElementById('testPushBtn').addEventListener('click', async () => {
+  try{
+    const payload = getPushPayload();
+
+    if(!payload.body){
+      alert('Заполни текст уведомления');
+      return;
+    }
+
+    const data = await sendPush(payload);
+    await loadPushStats();
+
+    setPushResult(`Отправлено: ${data.sent ?? 0}, ошибок: ${data.failed ?? 0}, удалено: ${data.removed ?? 0}`);
+  }catch(e){
+    setPushResult(e.message || 'Ошибка push', true);
+  }
+});
+
+document.getElementById('sendPushBtn').addEventListener('click', async () => {
+  try{
+    const payload = getPushPayload();
+
+    if(!payload.body){
+      alert('Заполни текст уведомления');
+      return;
+    }
+
+    const ok = confirm('Отправить push всем подписчикам?');
+    if(!ok) return;
+
+    const data = await sendPush(payload);
+    await loadPushStats();
+
+    setPushResult(`Push отправлен. Всего: ${data.total ?? 0}, доставлено: ${data.sent ?? 0}, ошибок: ${data.failed ?? 0}, удалено: ${data.removed ?? 0}`);
+  }catch(e){
+    setPushResult(e.message || 'Ошибка push', true);
+  }
 });
 
 document.getElementById('orders').addEventListener('click', async (e) => {
@@ -713,10 +1125,14 @@ document.getElementById('orders').addEventListener('click', async (e) => {
 async function init(){
   await loadProducts();
   await loadOrders();
+  await loadPushStats();
+  await loadLiveStats();
 
   setInterval(async () => {
     await loadProducts();
     await loadOrders();
+    await loadPushStats();
+    await loadLiveStats();
   }, 3000);
 }
 
