@@ -848,7 +848,7 @@
     <div class="pwa-text">
       <div class="pwa-title">Установите приложение</div>
       <div class="pwa-sub" id="pwaSubText">
-        Откройте меню <span class="share-icon"></span> → «На экран Домой»
+        Откройте меню <span class="share-icon"></span> → Показать больше → «Добавить на экран Домой»
       </div>
     </div>
     <button class="pwa-close" onclick="closePwaHint()">✕</button>
@@ -1378,7 +1378,7 @@ sync();
       alert('Push включен');
     } catch (e) {
       console.error(e);
-      alert('Сообщения можно получать, если только установить сайт как приложение на домашнем экране. Инструкция: Нажмите кнопку "Поделиться" далее "На экран Домой"');
+      alert('Сообщения можно получать, если только установить сайт как приложение на домашнем экране. Инструкция: Нажмите кнопку <span class="share-icon"></span> далее "На экран Домой"');
     }
   }
 </script>
