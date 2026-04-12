@@ -1144,5 +1144,199 @@ sync();
     alert('Push включен');
   }
 </script>
+  <!-- PWA install banner -->
+<div id="pwa-install-banner" class="pwa-banner hidden">
+  <div class="pwa-banner__text">
+    <div class="pwa-banner__title">Установите приложение</div>
+    <div class="pwa-banner__desc" id="pwa-install-text">
+      Открывайте заказ быстрее, прямо с главного экрана телефона.
+    </div>
+  </div>
+
+  <div class="pwa-banner__actions">
+    <button id="pwa-install-btn" class="pwa-btn">Установить</button>
+    <button id="pwa-close-btn" class="pwa-close" aria-label="Закрыть">✕</button>
+  </div>
+</div>
+
+<style>
+  .pwa-banner{
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 9999;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(17,17,17,.96);
+    color: #fff;
+    box-shadow: 0 12px 30px rgba(0,0,0,.22);
+    backdrop-filter: blur(10px);
+  }
+
+  .pwa-banner.hidden{
+    display: none;
+  }
+
+  .pwa-banner__text{
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pwa-banner__title{
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .pwa-banner__desc{
+    font-size: 13px;
+    line-height: 1.35;
+    opacity: .92;
+  }
+
+  .pwa-banner__actions{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pwa-btn{
+    border: 0;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    background: #ffffff;
+    color: #111;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .pwa-close{
+    border: 0;
+    background: transparent;
+    color: #fff;
+    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    opacity: .85;
+  }
+
+  @media (max-width: 520px){
+    .pwa-banner{
+      align-items: flex-start;
+    }
+
+    .pwa-banner__actions{
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .pwa-btn{
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  let deferredPrompt = null;
+
+  const banner = document.getElementById('pwa-install-banner');
+  const installBtn = document.getElementById('pwa-install-btn');
+  const closeBtn = document.getElementById('pwa-close-btn');
+  const installText = document.getElementById('pwa-install-text');
+
+  const ua = window.navigator.userAgent || '';
+  const isIos = /iphone|ipad|ipod/i.test(ua);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
+  const bannerClosedKey = 'pwaBannerClosed_v1';
+  const appInstalledKey = 'pwaInstalled_v1';
+
+  function shouldHideBanner() {
+    return (
+      localStorage.getItem(bannerClosedKey) === '1' ||
+      localStorage.getItem(appInstalledKey) === '1' ||
+      isStandalone
+    );
+  }
+
+  function showBanner() {
+    if (!shouldHideBanner()) {
+      banner.classList.remove('hidden');
+    }
+  }
+
+  function hideBanner(saveState = false) {
+    banner.classList.add('hidden');
+    if (saveState) {
+      localStorage.setItem(bannerClosedKey, '1');
+    }
+  }
+
+  closeBtn.addEventListener('click', () => {
+    hideBanner(true);
+  });
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    if (!isIos && !isStandalone && !shouldHideBanner()) {
+      installBtn.style.display = '';
+      installBtn.textContent = 'Установить';
+      installText.textContent = 'Открывайте заказ быстрее, прямо с главного экрана телефона.';
+      setTimeout(showBanner, 4000);
+    }
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (isIos) {
+      installBtn.style.display = 'none';
+      installText.innerHTML = isSafari
+        ? 'Нажмите <b>Поделиться</b>, затем <b>На экран «Домой»</b> и <b>Добавить</b>.'
+        : 'Для установки откройте сайт в <b>Safari</b>, затем нажмите <b>Поделиться</b> → <b>На экран «Домой»</b>.';
+      showBanner();
+      return;
+    }
+
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const result = await deferredPrompt.userChoice;
+
+    if (result.outcome === 'accepted') {
+      localStorage.setItem(appInstalledKey, '1');
+      hideBanner(false);
+    }
+
+    deferredPrompt = null;
+  });
+
+  window.addEventListener('appinstalled', () => {
+    localStorage.setItem(appInstalledKey, '1');
+    hideBanner(false);
+  });
+
+  // iPhone/iPad: показываем понятную подсказку
+  if (isIos && !isStandalone && !shouldHideBanner()) {
+    installBtn.style.display = '';
+    installBtn.textContent = 'Как установить';
+    installText.innerHTML = isSafari
+      ? 'Добавьте приложение на главный экран телефона.'
+      : 'Откройте сайт в <b>Safari</b>, чтобы добавить его на главный экран.';
+    showBanner();
+  }
+</script>
 </body>
 </html>
