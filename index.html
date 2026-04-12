@@ -1089,5 +1089,17 @@ document.getElementById('itemsList').addEventListener('click', function(e){
 loadPrices();
 sync();
 </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+      try {
+        await navigator.serviceWorker.register('/service-worker.js');
+        console.log('Service Worker зарегистрирован');
+      } catch (error) {
+        console.error('Ошибка регистрации Service Worker:', error);
+      }
+    });
+  }
+</script>
 </body>
 </html>
