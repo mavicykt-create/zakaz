@@ -1,1032 +1,726 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Superadmin</title>
-  <style>
-    :root {
-      --bg: #f3f4f6;
-      --card: #ffffff;
-      --text: #111827;
-      --muted: #6b7280;
-      --line: #e5e7eb;
-      --dark: #111827;
-      --green-bg: #dcfce7;
-      --green-text: #166534;
-      --blue-bg: #dbeafe;
-      --blue-text: #1d4ed8;
-      --yellow-bg: #fef3c7;
-      --yellow-text: #92400e;
-      --red-bg: #fee2e2;
-      --red-text: #b91c1c;
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
-      --radius: 18px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    .wrap {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    .top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 32px;
-    }
-
-    .notice {
-      display: none;
-      padding: 10px 14px;
-      border-radius: 12px;
-      background: var(--green-bg);
-      color: var(--green-text);
-      font-weight: 700;
-      box-shadow: var(--shadow);
-    }
-
-    .toolbar {
-      display: grid;
-      grid-template-columns: 1fr auto auto auto;
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-
-    .toolbar input,
-    .toolbar button,
-    .toolbar label,
-    .push-card input,
-    .push-card textarea,
-    .push-card button {
-      font-size: 15px;
-      border-radius: 12px;
-    }
-
-    .toolbar input {
-      height: 46px;
-      padding: 0 14px;
-      background: #fff;
-      border: 1px solid var(--line);
-    }
-
-    .toolbar button {
-      height: 46px;
-      padding: 0 16px;
-      border: 0;
-      cursor: pointer;
-      background: var(--dark);
-      color: #fff;
-      font-weight: 700;
-    }
-
-    .toolbar label {
-      height: 46px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 0 14px;
-      background: #fff;
-      border: 1px solid var(--line);
-      white-space: nowrap;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .stat {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-    }
-
-    .stat small {
-      display: block;
-      color: var(--muted);
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-
-    .stat strong {
-      font-size: 28px;
-    }
-
-    .section-title {
-      margin: 0 0 12px;
-      font-size: 22px;
-    }
-
-    .push-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 18px;
-      margin-bottom: 18px;
-    }
-
-    .push-top {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .push-stat {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px;
-      background: #fafafa;
-    }
-
-    .push-stat small {
-      display: block;
-      color: var(--muted);
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-
-    .push-stat strong {
-      font-size: 22px;
-    }
-
-    .push-form {
-      display: grid;
-      gap: 10px;
-    }
-
-    .push-form input,
-    .push-form textarea {
-      width: 100%;
-      border: 1px solid var(--line);
-      background: #fff;
-      padding: 12px 14px;
-      font-family: inherit;
-    }
-
-    .push-form textarea {
-      min-height: 110px;
-      resize: vertical;
-    }
-
-    .push-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 2px;
-    }
-
-    .btn-dark,
-    .btn-blue,
-    .btn-green,
-    .btn-red,
-    .btn-gray {
-      border: 0;
-      padding: 12px 16px;
-      font-weight: 700;
-      cursor: pointer;
-      color: #fff;
-    }
-
-    .btn-dark {
-      background: #111827;
-    }
-
-    .btn-blue {
-      background: #1d4ed8;
-    }
-
-    .btn-green {
-      background: #166534;
-    }
-
-    .btn-red {
-      background: #b91c1c;
-    }
-
-    .btn-gray {
-      background: #4b5563;
-    }
-
-    .push-result {
-      display: none;
-      margin-top: 12px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-weight: 700;
-      line-height: 1.45;
-    }
-
-    .push-result.ok {
-      display: block;
-      background: var(--green-bg);
-      color: var(--green-text);
-    }
-
-    .push-result.error {
-      display: block;
-      background: var(--red-bg);
-      color: var(--red-text);
-    }
-
-    .orders {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .order {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      border-left: 6px solid #dbeafe;
-    }
-
-    .order.done {
-      border-left-color: #dcfce7;
-      opacity: 0.92;
-    }
-
-    .order.cancelled {
-      border-left-color: #fee2e2;
-      opacity: 0.88;
-    }
-
-    .order-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: flex-start;
-      padding: 18px;
-      border-bottom: 1px solid var(--line);
-      flex-wrap: wrap;
-    }
-
-    .order-title {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .muted {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .head-right {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .order-sum {
-      background: var(--blue-bg);
-      color: var(--blue-text);
-      border-radius: 999px;
-      padding: 10px 14px;
-      font-size: 16px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    .status-badge {
-      padding: 10px 14px;
-      border-radius: 999px;
-      font-size: 14px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    .status-new {
-      background: var(--yellow-bg);
-      color: var(--yellow-text);
-    }
-
-    .status-done {
-      background: var(--green-bg);
-      color: var(--green-text);
-    }
-
-    .status-cancelled {
-      background: var(--red-bg);
-      color: var(--red-text);
-    }
-
-    .order-body {
-      display: grid;
-      grid-template-columns: 1.25fr 0.75fr;
-      gap: 16px;
-      padding: 18px;
-    }
-
-    .box {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      overflow: hidden;
-      background: #fff;
-    }
-
-    .box-title {
-      padding: 12px 14px;
-      font-weight: 700;
-      border-bottom: 1px solid var(--line);
-      background: #fafafa;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-      vertical-align: top;
-    }
-
-    th {
-      background: #111;
-      color: #fff;
-      font-size: 14px;
-    }
-
-    tr:last-child td {
-      border-bottom: 0;
-    }
-
-    .article {
-      font-weight: 700;
-      font-size: 18px;
-      letter-spacing: 0.02em;
-    }
-
-    .qty {
-      font-weight: 700;
-      font-size: 18px;
-    }
-
-    .meta {
-      padding: 14px;
-    }
-
-    .meta-row {
-      margin-bottom: 12px;
-      font-size: 15px;
-    }
-
-    .meta-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .meta-row strong {
-      display: inline-block;
-      min-width: 120px;
-    }
-
-    .raw {
-      white-space: pre-wrap;
-      background: #f9fafb;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      font-size: 14px;
-      margin-top: 8px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
-
-    .btn-copy,
-    .btn-cancel,
-    .btn-restore {
-      border: 0;
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .btn-copy {
-      background: #111827;
-      color: #fff;
-    }
-
-    .btn-copy.ok {
-      background: #166534;
-    }
-
-    .btn-cancel {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-
-    .btn-restore {
-      background: #dbeafe;
-      color: #1d4ed8;
-    }
-
-    .empty {
-      background: #fff;
-      border-radius: var(--radius);
-      padding: 30px;
-      text-align: center;
-      color: var(--muted);
-      box-shadow: var(--shadow);
-    }
-
-    @media (max-width: 980px) {
-      .stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .push-top {
-        grid-template-columns: 1fr;
-      }
-
-      .order-body {
-        grid-template-columns: 1fr;
-      }
-
-      .toolbar {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Заказы — Сладкая планета</title>
+
+<style>
+:root{
+  --bg:#f5f5f7;
+  --card:#ffffff;
+  --ink:#111827;
+  --muted:#6b7280;
+  --line:#e5e7eb;
+  --blue:#2563eb;
+  --green:#16a34a;
+  --red:#dc2626;
+  --yellow:#d97706;
+  --yellow-bg:#fff7ed;
+  --green-bg:#ecfdf5;
+  --red-bg:#fef2f2;
+  --shadow:0 10px 30px rgba(17,24,39,.07);
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+}
+
+.wrap{
+  max-width:1200px;
+  margin:0 auto;
+  padding:16px;
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+
+.top-left{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+h1{
+  margin:0;
+  font-size:28px;
+  line-height:1;
+}
+
+.sub{
+  color:var(--muted);
+  font-size:14px;
+}
+
+.top-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  min-height:44px;
+  padding:10px 14px;
+  border-radius:12px;
+  border:0;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+}
+
+.btn.dark{ background:#111827; color:#fff; }
+.btn.blue{ background:var(--blue); color:#fff; }
+.btn.green{ background:var(--green); color:#fff; }
+.btn.red{ background:var(--red); color:#fff; }
+.btn.gray{ background:#e5e7eb; color:#111827; }
+
+.search{
+  width:100%;
+  padding:14px 16px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:#fff;
+  font-size:15px;
+  margin-bottom:16px;
+  box-shadow:var(--shadow);
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.stat{
+  background:var(--card);
+  border-radius:16px;
+  padding:14px 16px;
+  box-shadow:var(--shadow);
+}
+
+.stat-label{
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:8px;
+}
+
+.stat-value{
+  font-size:28px;
+  font-weight:800;
+  line-height:1;
+}
+
+.notice{
+  display:none;
+  margin-bottom:16px;
+  padding:14px 16px;
+  border-radius:14px;
+  background:var(--green-bg);
+  color:#166534;
+  font-weight:700;
+  box-shadow:var(--shadow);
+}
+
+.orders{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.order{
+  background:var(--card);
+  border-radius:18px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  border-left:6px solid #d1d5db;
+}
+
+.order.new{
+  border-left-color:var(--yellow);
+}
+
+.order.done{
+  border-left-color:var(--green);
+  opacity:.92;
+}
+
+.order.cancelled{
+  border-left-color:var(--red);
+  opacity:.82;
+}
+
+.head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+  align-items:flex-start;
+  flex-wrap:wrap;
+}
+
+.head-left{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.id{
+  font-size:22px;
+  font-weight:800;
+  line-height:1;
+}
+
+.time{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.badges{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.badge{
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:700;
+}
+
+.badge.new{
+  background:var(--yellow-bg);
+  color:#9a3412;
+}
+
+.badge.done{
+  background:var(--green-bg);
+  color:#166534;
+}
+
+.badge.cancelled{
+  background:var(--red-bg);
+  color:#b91c1c;
+}
+
+.badge.sum{
+  background:#eff6ff;
+  color:#1d4ed8;
+}
+
+.comment{
+  margin-bottom:12px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:#f9fafb;
+  border:1px solid var(--line);
+  font-size:14px;
+}
+
+.comment.empty{
+  color:var(--muted);
+}
+
+.items{
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  background:#fff;
+}
+
+.row{
+  display:grid;
+  grid-template-columns:1.2fr .7fr .8fr .8fr;
+  gap:12px;
+  padding:12px 14px;
+  border-bottom:1px solid var(--line);
+  align-items:center;
+}
+
+.row:last-child{
+  border-bottom:none;
+}
+
+.row.headline{
+  background:#111827;
+  color:#fff;
+  font-size:13px;
+  font-weight:700;
+}
+
+.article{
+  font-weight:800;
+  font-size:18px;
+}
+
+.qty,
+.price,
+.line-sum{
+  font-weight:700;
+}
+
+.actions{
+  margin-top:12px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.empty{
+  text-align:center;
+  color:var(--muted);
+  padding:40px 20px;
+  background:#fff;
+  border-radius:18px;
+  box-shadow:var(--shadow);
+}
+
+@media (max-width:900px){
+  .stats{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .row{
+    grid-template-columns:1fr .7fr;
+  }
+
+  .row.headline .price,
+  .row.headline .line-sum,
+  .row .price,
+  .row .line-sum{
+    display:none;
+  }
+}
+
+@media (max-width:560px){
+  .stats{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .id{
+    font-size:20px;
+  }
+
+  .article{
+    font-size:16px;
+  }
+
+  .btn{
+    width:100%;
+  }
+
+  .top-actions{
+    width:100%;
+  }
+
+  .top-actions .btn{
+    flex:1 1 100%;
+  }
+
+  .actions .btn{
+    flex:1 1 100%;
+  }
+}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
+<div class="wrap">
+  <div class="top">
+    <div class="top-left">
       <h1>Заказы</h1>
-      <div id="newNotice" class="notice">Поступил новый заказ</div>
+      <div class="sub">Новые сверху. Обновление каждые 3 секунды.</div>
     </div>
 
-    <div class="toolbar">
-      <input id="search" type="text" placeholder="Поиск по артикулу, ID, комментарию..." />
-      <button id="refreshBtn" type="button">Обновить сейчас</button>
-      <button id="copyFirstBtn" type="button">Копировать первый новый</button>
-      <label>
-        <input id="onlyNew" type="checkbox" />
-        Только новые
-      </label>
+    <div class="top-actions">
+      <button class="btn dark" id="refreshBtn">Обновить</button>
+      <button class="btn blue" id="copyFirstBtn">Копировать первый новый</button>
     </div>
-
-    <div class="stats">
-      <div class="stat">
-        <small>Всего заказов</small>
-        <strong id="statOrders">0</strong>
-      </div>
-      <div class="stat">
-        <small>Новые</small>
-        <strong id="statNew">0</strong>
-      </div>
-      <div class="stat">
-        <small>Обработаны</small>
-        <strong id="statDone">0</strong>
-      </div>
-      <div class="stat">
-        <small>Отменены</small>
-        <strong id="statCancelled">0</strong>
-      </div>
-      <div class="stat">
-        <small>Последнее обновление</small>
-        <strong id="statUpdated" style="font-size:18px">—</strong>
-      </div>
-    </div>
-
-    <div class="push-card">
-      <h2 class="section-title">Push-уведомления</h2>
-
-      <div class="push-top">
-        <div class="push-stat">
-          <small>Push на сервере</small>
-          <strong id="pushEnabled">—</strong>
-        </div>
-        <div class="push-stat">
-          <small>Подписчиков</small>
-          <strong id="pushSubscriptions">0</strong>
-        </div>
-        <div class="push-stat">
-          <small>Последняя проверка</small>
-          <strong id="pushCheckedAt">—</strong>
-        </div>
-      </div>
-
-      <div class="push-form">
-        <input id="pushTitle" type="text" value="Сладкая планета" placeholder="Заголовок уведомления" />
-        <textarea id="pushBody" placeholder="Текст уведомления"></textarea>
-        <input id="pushUrl" type="text" value="/" placeholder="Ссылка при нажатии, например /" />
-
-        <div class="push-actions">
-          <button id="checkPushBtn" class="btn-gray" type="button">Проверить подписчиков</button>
-          <button id="pricePushBtn" class="btn-blue" type="button">Обновление прайса</button>
-          <button id="testPushBtn" class="btn-green" type="button">Тест себе</button>
-          <button id="sendPushBtn" class="btn-dark" type="button">Отправить всем</button>
-        </div>
-
-        <div id="pushResult" class="push-result"></div>
-      </div>
-    </div>
-
-    <div id="orders" class="orders"></div>
   </div>
 
-  <script>
-    let allOrders = [];
-    let productsMap = {};
-    let lastTopOrderId = null;
-    let audioUnlocked = false;
+  <div id="notice" class="notice">Поступил новый заказ</div>
 
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
+  <input class="search" id="search" placeholder="Поиск по ID, артикулу, комментарию..." />
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Всего</div>
+      <div class="stat-value" id="statAll">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Новые</div>
+      <div class="stat-value" id="statNew">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Обработаны</div>
+      <div class="stat-value" id="statDone">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Последнее обновление</div>
+      <div class="stat-value" id="statTime" style="font-size:18px;">—</div>
+    </div>
+  </div>
+
+  <div id="orders" class="orders"></div>
+</div>
+
+<script>
+let orders = [];
+let products = {};
+let lastTopOrderId = null;
+let audioUnlocked = false;
+
+function escapeHtml(value){
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function formatMoney(value){
+  return Number(value || 0).toLocaleString('ru-RU') + ' ₽';
+}
+
+function formatDate(value){
+  try{
+    return new Date(value).toLocaleString('ru-RU');
+  }catch{
+    return value || '—';
+  }
+}
+
+function unlockAudio(){
+  audioUnlocked = true;
+}
+
+function beepNewOrder(){
+  if(!audioUnlocked) return;
+
+  try{
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+
+    const o1 = ctx.createOscillator();
+    const g1 = ctx.createGain();
+    o1.type = 'sine';
+    o1.frequency.value = 880;
+    g1.gain.setValueAtTime(0.0001, now);
+    g1.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+    g1.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+    o1.connect(g1);
+    g1.connect(ctx.destination);
+    o1.start(now);
+    o1.stop(now + 0.16);
+
+    const o2 = ctx.createOscillator();
+    const g2 = ctx.createGain();
+    o2.type = 'sine';
+    o2.frequency.value = 1175;
+    g2.gain.setValueAtTime(0.0001, now + 0.10);
+    g2.gain.exponentialRampToValueAtTime(0.07, now + 0.12);
+    g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
+    o2.connect(g2);
+    g2.connect(ctx.destination);
+    o2.start(now + 0.10);
+    o2.stop(now + 0.26);
+  }catch(e){}
+}
+
+async function loadProducts(){
+  try{
+    const res = await fetch('/api/products', { cache:'no-store' });
+    products = await res.json();
+  }catch(e){
+    products = {};
+  }
+}
+
+function calcOrderSum(order){
+  let s = 0;
+  (order.items || []).forEach(i => {
+    const price = Number(products[i.article]?.price || 0);
+    s += price * Number(i.quantity || 0);
+  });
+  return s;
+}
+
+function sortOrders(list){
+  return [...list].sort((a, b) => {
+    const rank = status => {
+      if (status === 'new') return 0;
+      if (status === 'done') return 1;
+      if (status === 'cancelled') return 2;
+      return 3;
+    };
+
+    const r = rank(a.status) - rank(b.status);
+    if (r !== 0) return r;
+
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+}
+
+async function loadOrders(){
+  const res = await fetch('/api/orders', { cache:'no-store' });
+  const data = await res.json();
+  const nextOrders = Array.isArray(data.orders) ? data.orders : [];
+  const sortedNext = sortOrders(nextOrders);
+
+  if (sortedNext.length > 0) {
+    const newTopId = sortedNext[0].id;
+    if (lastTopOrderId !== null && newTopId !== lastTopOrderId) {
+      showNotice('Поступил новый заказ');
+      beepNewOrder();
     }
+    lastTopOrderId = newTopId;
+  }
 
-    function formatMoney(value) {
-      return Number(value || 0).toLocaleString('ru-RU') + ' ₽';
-    }
+  orders = sortedNext;
+  render();
+}
 
-    function formatDate(value) {
-      try {
-        return new Date(value).toLocaleString('ru-RU');
-      } catch {
-        return value || '—';
-      }
-    }
+function showNotice(text){
+  const el = document.getElementById('notice');
+  el.textContent = text;
+  el.style.display = 'block';
 
-    function getStatusText(status) {
-      if (status === 'done') return 'Обработан';
-      if (status === 'cancelled') return 'Отмена';
-      return 'Новый';
-    }
+  clearTimeout(showNotice._t);
+  showNotice._t = setTimeout(() => {
+    el.style.display = 'none';
+  }, 2500);
+}
 
-    function getOrderExcelText(order) {
-      return (order.items || [])
-        .map(item => `${item.article}\t${item.quantity}`)
-        .join('\n');
-    }
+function getStatusText(status){
+  if(status === 'done') return 'Обработан';
+  if(status === 'cancelled') return 'Отменён';
+  return 'Новый';
+}
 
-    async function copyText(text, button) {
-      try {
-        await navigator.clipboard.writeText(text);
-        const old = button.textContent;
-        button.textContent = 'Скопировано';
-        button.classList.add('ok');
-        setTimeout(() => {
-          button.textContent = old;
-          button.classList.remove('ok');
-        }, 1200);
-      } catch {
-        alert('Не удалось скопировать');
-      }
-    }
+function getOrderExcelText(order){
+  return (order.items || []).map(i => `${i.article}\t${i.quantity}`).join('\n');
+}
 
-    function unlockAudio() {
-      audioUnlocked = true;
-    }
+async function copyOrder(order, button){
+  try{
+    await navigator.clipboard.writeText(getOrderExcelText(order));
+    const old = button.textContent;
+    button.textContent = 'Скопировано';
+    button.classList.remove('blue');
+    button.classList.add('green');
 
-    function playNewOrderSound() {
-      if (!audioUnlocked) return;
+    setTimeout(() => {
+      button.textContent = old;
+      button.classList.remove('green');
+      button.classList.add('blue');
+    }, 1200);
+  }catch(e){
+    alert('Не удалось скопировать');
+  }
+}
 
-      try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        const ctx = new AudioCtx();
-        const now = ctx.currentTime;
+async function patchStatus(orderId, status){
+  const res = await fetch('/api/orders/' + orderId + '/status', {
+    method:'PATCH',
+    headers:{ 'Content-Type':'application/json' },
+    body:JSON.stringify({ status })
+  });
 
-        const o1 = ctx.createOscillator();
-        const g1 = ctx.createGain();
-        o1.type = 'sine';
-        o1.frequency.value = 880;
-        g1.gain.setValueAtTime(0.0001, now);
-        g1.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
-        g1.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
-        o1.connect(g1);
-        g1.connect(ctx.destination);
-        o1.start(now);
-        o1.stop(now + 0.18);
+  const data = await res.json().catch(() => ({}));
 
-        const o2 = ctx.createOscillator();
-        const g2 = ctx.createGain();
-        o2.type = 'sine';
-        o2.frequency.value = 1175;
-        g2.gain.setValueAtTime(0.0001, now + 0.12);
-        g2.gain.exponentialRampToValueAtTime(0.07, now + 0.14);
-        g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.30);
-        o2.connect(g2);
-        g2.connect(ctx.destination);
-        o2.start(now + 0.12);
-        o2.stop(now + 0.30);
-      } catch {}
-    }
+  if(!res.ok || !data.success){
+    alert(data.error || 'Не удалось изменить статус');
+    return false;
+  }
 
-    async function loadProducts() {
-      try {
-        const res = await fetch('/api/products', { cache: 'no-store' });
-        const data = await res.json();
-        productsMap = data && typeof data === 'object' ? data : {};
-      } catch {
-        productsMap = {};
-      }
-    }
+  return true;
+}
 
-    function calcOrderSum(order) {
-      let total = 0;
+async function sendPushForOrder(order){
+  const body = `Новый заказ #${order.id}. Позиций: ${order.totalQuantity || 0}. Сумма: ${formatMoney(calcOrderSum(order))}`;
 
-      for (const item of (order.items || [])) {
-        const product = productsMap[item.article];
-        const price = product ? Number(product.price || 0) : 0;
-        total += price * Number(item.quantity || 0);
-      }
+  const res = await fetch('/api/push/send', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body:JSON.stringify({
+      title:'Сладкая планета',
+      body,
+      url:'/'
+    })
+  });
 
-      return total;
-    }
+  const data = await res.json().catch(() => ({}));
 
-    async function loadOrders() {
-      const res = await fetch('/api/orders', { cache: 'no-store' });
-      const data = await res.json();
-      const orders = Array.isArray(data.orders) ? data.orders : [];
+  if(!res.ok || !data.success){
+    alert(data.error || 'Не удалось отправить push');
+    return;
+  }
 
-      if (orders.length > 0) {
-        const topId = orders[0].id;
+  showNotice(`Push отправлен: ${data.sent || 0}`);
+}
 
-        if (lastTopOrderId !== null && topId !== lastTopOrderId) {
-          const notice = document.getElementById('newNotice');
-          notice.style.display = 'block';
-          playNewOrderSound();
+function render(){
+  const root = document.getElementById('orders');
+  const q = document.getElementById('search').value.trim().toLowerCase();
 
-          setTimeout(() => {
-            notice.style.display = 'none';
-          }, 3000);
-        }
+  const filtered = orders.filter(o => {
+    const haystack = [
+      o.id,
+      o.comment,
+      o.customerName,
+      o.customerPhone,
+      o.rawText,
+      ...(o.items || []).map(i => i.article)
+    ].join(' ').toLowerCase();
 
-        lastTopOrderId = topId;
-      }
+    return !q || haystack.includes(q);
+  });
 
-      allOrders = orders;
-      render();
-    }
+  document.getElementById('statAll').textContent = orders.length;
+  document.getElementById('statNew').textContent = orders.filter(o => o.status === 'new').length;
+  document.getElementById('statDone').textContent = orders.filter(o => o.status === 'done').length;
+  document.getElementById('statTime').textContent = new Date().toLocaleTimeString('ru-RU');
 
-    function render() {
-      const q = document.getElementById('search').value.trim().toLowerCase();
-      const onlyNew = document.getElementById('onlyNew').checked;
+  if(!filtered.length){
+    root.innerHTML = '<div class="empty">Нет заказов</div>';
+    return;
+  }
 
-      const sorted = [...allOrders].sort((a, b) => {
-        const priority = {
-          new: 0,
-          done: 1,
-          cancelled: 2
-        };
+  root.innerHTML = '';
 
-        const pa = priority[a.status] ?? 3;
-        const pb = priority[b.status] ?? 3;
+  filtered.forEach(order => {
+    const orderSum = calcOrderSum(order);
 
-        if (pa !== pb) return pa - pb;
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      });
+    const div = document.createElement('div');
+    div.className = 'order ' + (order.status || 'new');
 
-      const filtered = sorted.filter(order => {
-        const haystack = [
-          order.id,
-          order.comment,
-          order.customerName,
-          order.customerPhone,
-          order.rawText,
-          ...(order.items || []).map(i => i.article)
-        ].join(' ').toLowerCase();
+    div.innerHTML = `
+      <div class="head">
+        <div class="head-left">
+          <div class="id">#${escapeHtml(order.id)}</div>
+          <div class="time">${escapeHtml(formatDate(order.createdAt))}</div>
+        </div>
 
-        if (onlyNew && order.status !== 'new') return false;
-        return !q || haystack.includes(q);
-      });
+        <div class="badges">
+          <div class="badge ${(order.status || 'new')}">${escapeHtml(getStatusText(order.status))}</div>
+          <div class="badge sum">${escapeHtml(formatMoney(orderSum))}</div>
+        </div>
+      </div>
 
-      document.getElementById('statOrders').textContent = allOrders.length;
-      document.getElementById('statNew').textContent = allOrders.filter(o => o.status === 'new').length;
-      document.getElementById('statDone').textContent = allOrders.filter(o => o.status === 'done').length;
-      document.getElementById('statCancelled').textContent = allOrders.filter(o => o.status === 'cancelled').length;
-      document.getElementById('statUpdated').textContent = new Date().toLocaleTimeString('ru-RU');
+      <div class="comment ${order.comment ? '' : 'empty'}">
+        ${order.comment ? escapeHtml(order.comment) : 'Без комментария'}
+      </div>
 
-      const root = document.getElementById('orders');
-      root.innerHTML = '';
+      <div class="items">
+        <div class="row headline">
+          <div>Артикул</div>
+          <div>Количество</div>
+          <div class="price">Цена</div>
+          <div class="line-sum">Сумма</div>
+        </div>
 
-      if (!filtered.length) {
-        root.innerHTML = '<div class="empty">Заказов пока нет</div>';
-        return;
-      }
-
-      for (const order of filtered) {
-        const orderSum = calcOrderSum(order);
-
-        const itemsRows = (order.items || []).map(item => {
-          const product = productsMap[item.article];
-          const price = product ? Number(product.price || 0) : 0;
+        ${(order.items || []).map(item => {
+          const price = Number(products[item.article]?.price || 0);
           const lineSum = price * Number(item.quantity || 0);
 
           return `
-            <tr>
-              <td class="article">${escapeHtml(item.article)}</td>
-              <td class="qty">${escapeHtml(item.quantity)}</td>
-              <td>${formatMoney(price)}</td>
-              <td>${formatMoney(lineSum)}</td>
-            </tr>
+            <div class="row">
+              <div class="article">${escapeHtml(item.article)}</div>
+              <div class="qty">${escapeHtml(item.quantity)}</div>
+              <div class="price">${escapeHtml(formatMoney(price))}</div>
+              <div class="line-sum">${escapeHtml(formatMoney(lineSum))}</div>
+            </div>
           `;
-        }).join('');
+        }).join('')}
+      </div>
 
-        const div = document.createElement('div');
-        div.className = `order ${escapeHtml(order.status || 'new')}`;
+      <div class="actions">
+        <button class="btn blue" data-copy="${order.id}">Копировать</button>
+        ${order.status === 'new' ? `<button class="btn dark" data-push="${order.id}">Push</button>` : ''}
+        ${order.status !== 'done' ? `<button class="btn green" data-done="${order.id}">Готово</button>` : ''}
+        ${order.status !== 'cancelled' ? `<button class="btn red" data-cancel="${order.id}">Отмена</button>` : ''}
+      </div>
+    `;
 
-        div.innerHTML = `
-          <div class="order-head">
-            <div>
-              <div class="order-title">Заказ #${escapeHtml(order.id)}</div>
-              <div class="muted">${escapeHtml(formatDate(order.createdAt))}</div>
-            </div>
+    root.appendChild(div);
+  });
+}
 
-            <div class="head-right">
-              <div class="order-sum">Сумма: ${formatMoney(orderSum)}</div>
-              <div class="status-badge status-${escapeHtml(order.status || 'new')}">
-                ${escapeHtml(getStatusText(order.status))}
-              </div>
-            </div>
-          </div>
+document.addEventListener('click', unlockAudio, { once:true });
+document.addEventListener('keydown', unlockAudio, { once:true });
 
-          <div class="order-body">
-            <div class="box">
-              <div class="box-title">Позиции</div>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Артикул</th>
-                    <th>Количество</th>
-                    <th>Цена</th>
-                    <th>Сумма</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${itemsRows}
-                </tbody>
-              </table>
-            </div>
+document.getElementById('search').addEventListener('input', render);
 
-            <div class="box">
-              <div class="box-title">Информация</div>
-              <div class="meta">
-                <div class="meta-row"><strong>Комментарий:</strong> ${escapeHtml(order.comment || '—')}</div>
-                <div class="meta-row"><strong>Клиент:</strong> ${escapeHtml(order.customerName || '—')}</div>
-                <div class="meta-row"><strong>Телефон:</strong> ${escapeHtml(order.customerPhone || '—')}</div>
-                <div class="meta-row"><strong>Позиций:</strong> ${escapeHtml(order.totalItems || 0)}</div>
-                <div class="meta-row"><strong>Количество:</strong> ${escapeHtml(order.totalQuantity || 0)}</div>
-                <div class="meta-row">
-                  <strong>Текст заказа:</strong>
-                  <div class="raw">${escapeHtml(order.rawText || '')}</div>
-                </div>
+document.getElementById('refreshBtn').addEventListener('click', async () => {
+  await loadProducts();
+  await loadOrders();
+});
 
-                <div class="actions">
-                  <button class="btn-copy" data-copy-order="${order.id}">
-                    Копировать в Excel
-                  </button>
+document.getElementById('copyFirstBtn').addEventListener('click', async (e) => {
+  const firstNew = orders.find(o => o.status === 'new');
+  if(!firstNew){
+    alert('Новых заказов нет');
+    return;
+  }
 
-                  ${
-                    order.status === 'cancelled'
-                      ? `<button class="btn-restore" data-restore-order="${order.id}">Вернуть</button>`
-                      : `<button class="btn-cancel" data-cancel-order="${order.id}">Отмена</button>`
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
+  await copyOrder(firstNew, e.currentTarget);
+});
 
-        root.appendChild(div);
-      }
-    }
+document.getElementById('orders').addEventListener('click', async (e) => {
+  const copyBtn = e.target.closest('[data-copy]');
+  const pushBtn = e.target.closest('[data-push]');
+  const doneBtn = e.target.closest('[data-done]');
+  const cancelBtn = e.target.closest('[data-cancel]');
 
-    async function patchStatus(orderId, status) {
-      const res = await fetch('/api/orders/' + orderId + '/status', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
+  if(copyBtn){
+    const id = Number(copyBtn.dataset.copy);
+    const order = orders.find(o => Number(o.id) === id);
+    if(order) await copyOrder(order, copyBtn);
+  }
 
-      const data = await res.json().catch(() => ({}));
+  if(pushBtn){
+    const id = Number(pushBtn.dataset.push);
+    const order = orders.find(o => Number(o.id) === id);
+    if(order) await sendPushForOrder(order);
+  }
 
-      if (!res.ok || !data.success) {
-        alert(data.error || 'Не удалось изменить статус');
-        return false;
-      }
+  if(doneBtn){
+    const id = Number(doneBtn.dataset.done);
+    const ok = await patchStatus(id, 'done');
+    if(ok) await loadOrders();
+  }
 
-      return true;
-    }
+  if(cancelBtn){
+    const id = Number(cancelBtn.dataset.cancel);
+    const ok = await patchStatus(id, 'cancelled');
+    if(ok) await loadOrders();
+  }
+});
 
-    function setPushResult(message, isError = false) {
-      const box = document.getElementById('pushResult');
-      box.className = 'push-result ' + (isError ? 'error' : 'ok');
-      box.textContent = message;
-    }
+async function init(){
+  await loadProducts();
+  await loadOrders();
 
-    async function loadPushStats() {
-      try {
-        const res = await fetch('/api/push/stats', { cache: 'no-store' });
-        const data = await res.json();
+  setInterval(async () => {
+    await loadProducts();
+    await loadOrders();
+  }, 3000);
+}
 
-        document.getElementById('pushEnabled').textContent = data.enabled ? 'Включён' : 'Выключен';
-        document.getElementById('pushSubscriptions').textContent = data.subscriptions ?? 0;
-        document.getElementById('pushCheckedAt').textContent = new Date().toLocaleTimeString('ru-RU');
-      } catch {
-        document.getElementById('pushEnabled').textContent = 'Ошибка';
-        document.getElementById('pushSubscriptions').textContent = '—';
-        document.getElementById('pushCheckedAt').textContent = new Date().toLocaleTimeString('ru-RU');
-      }
-    }
-
-    function getPushPayload() {
-      return {
-        title: document.getElementById('pushTitle').value.trim() || 'Сладкая планета',
-        body: document.getElementById('pushBody').value.trim(),
-        url: document.getElementById('pushUrl').value.trim() || '/'
-      };
-    }
-
-    async function sendPush(payload) {
-      const res = await fetch('/api/push/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Не удалось отправить push');
-      }
-
-      return data;
-    }
-
-    document.addEventListener('click', unlockAudio, { once: true });
-    document.addEventListener('keydown', unlockAudio, { once: true });
-
-    document.getElementById('orders').addEventListener('click', async (e) => {
-      const btnCopy = e.target.closest('[data-copy-order]');
-      const btnCancel = e.target.closest('[data-cancel-order]');
-      const btnRestore = e.target.closest('[data-restore-order]');
-
-      if (btnCopy) {
-        const orderId = Number(btnCopy.dataset.copyOrder);
-        const order = allOrders.find(o => o.id === orderId);
-        if (!order) return;
-
-        const text = getOrderExcelText(order);
-        await copyText(text, btnCopy);
-
-        const ok = await patchStatus(orderId, 'done');
-        if (ok) {
-          await loadOrders();
-        }
-      }
-
-      if (btnCancel) {
-        const orderId = Number(btnCancel.dataset.cancelOrder);
-        const ok = await patchStatus(orderId, 'cancelled');
-        if (ok) {
-          await loadOrders();
-        }
-      }
-
-      if (btnRestore) {
-        const orderId = Number(btnRestore.dataset.restoreOrder);
-        const ok = await patchStatus(orderId, 'new');
-        if (ok) {
-          await loadOrders();
-        }
-      }
-    });
-
-    document.getElementById('copyFirstBtn').addEventListener('click', async (e) => {
-      const firstNew = allOrders.find(o => o.status === 'new');
-
-      if (!firstNew) {
-        alert('Новых заказов нет');
-        return;
-      }
-
-      const text = getOrderExcelText(firstNew);
-      await copyText(text, e.currentTarget);
-
-      const ok = await patchStatus(firstNew.id, 'done');
-      if (ok) {
-        await loadOrders();
-      }
-    });
-
-    document.getElementById('refreshBtn').addEventListener('click', async () => {
-      await loadProducts();
-      await loadOrders();
-      await loadPushStats();
-    });
-
-    document.getElementById('checkPushBtn').addEventListener('click', async () => {
-      await loadPushStats();
-      setPushResult('Статистика push обновлена');
-    });
-
-    document.getElementById('pricePushBtn').addEventListener('click', () => {
-      document.getElementById('pushTitle').value = 'Сладкая планета';
-      document.getElementById('pushBody').value = 'Цены обновлены, можно оформлять заказ';
-      document.getElementById('pushUrl').value = '/';
-      setPushResult('Шаблон "Обновление прайса" подставлен');
-    });
-
-    document.getElementById('testPushBtn').addEventListener('click', async () => {
-      try {
-        const payload = getPushPayload();
-
-        if (!payload.body) {
-          alert('Заполни текст уведомления');
-          return;
-        }
-
-        const data = await sendPush(payload);
-        await loadPushStats();
-
-        setPushResult(
-          `Отправлено: ${data.sent ?? 0}, ошибок: ${data.failed ?? 0}, удалено подписок: ${data.removed ?? 0}`
-        );
-      } catch (e) {
-        setPushResult(e.message || 'Ошибка отправки push', true);
-      }
-    });
-
-    document.getElementById('sendPushBtn').addEventListener('click', async () => {
-      try {
-        const payload = getPushPayload();
-
-        if (!payload.body) {
-          alert('Заполни текст уведомления');
-          return;
-        }
-
-        const ok = confirm('Отправить push всем подписчикам?');
-        if (!ok) return;
-
-        const data = await sendPush(payload);
-        await loadPushStats();
-
-        setPushResult(
-          `Push отправлен. Всего: ${data.total ?? 0}, доставлено: ${data.sent ?? 0}, ошибок: ${data.failed ?? 0}, удалено: ${data.removed ?? 0}`
-        );
-      } catch (e) {
-        setPushResult(e.message || 'Ошибка отправки push', true);
-      }
-    });
-
-    document.getElementById('search').addEventListener('input', render);
-    document.getElementById('onlyNew').addEventListener('change', render);
-
-    async function init() {
-      await loadProducts();
-      await loadOrders();
-      await loadPushStats();
-
-      setInterval(async () => {
-        await loadProducts();
-        await loadOrders();
-        await loadPushStats();
-      }, 3000);
-    }
-
-    init();
-  </script>
+init();
+</script>
 </body>
 </html>
