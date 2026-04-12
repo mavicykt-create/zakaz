@@ -74,19 +74,23 @@
 
     .toolbar input,
     .toolbar button,
-    .toolbar label {
-      height: 46px;
-      border-radius: 12px;
+    .toolbar label,
+    .push-card input,
+    .push-card textarea,
+    .push-card button {
       font-size: 15px;
+      border-radius: 12px;
     }
 
     .toolbar input {
+      height: 46px;
       padding: 0 14px;
       background: #fff;
       border: 1px solid var(--line);
     }
 
     .toolbar button {
+      height: 46px;
       padding: 0 16px;
       border: 0;
       cursor: pointer;
@@ -96,6 +100,7 @@
     }
 
     .toolbar label {
+      height: 46px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -128,6 +133,123 @@
 
     .stat strong {
       font-size: 28px;
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 22px;
+    }
+
+    .push-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .push-top {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .push-stat {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fafafa;
+    }
+
+    .push-stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .push-stat strong {
+      font-size: 22px;
+    }
+
+    .push-form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .push-form input,
+    .push-form textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 12px 14px;
+      font-family: inherit;
+    }
+
+    .push-form textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .push-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .btn-dark,
+    .btn-blue,
+    .btn-green,
+    .btn-red,
+    .btn-gray {
+      border: 0;
+      padding: 12px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    .btn-dark {
+      background: #111827;
+    }
+
+    .btn-blue {
+      background: #1d4ed8;
+    }
+
+    .btn-green {
+      background: #166534;
+    }
+
+    .btn-red {
+      background: #b91c1c;
+    }
+
+    .btn-gray {
+      background: #4b5563;
+    }
+
+    .push-result {
+      display: none;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .push-result.ok {
+      display: block;
+      background: var(--green-bg);
+      color: var(--green-text);
+    }
+
+    .push-result.error {
+      display: block;
+      background: var(--red-bg);
+      color: var(--red-text);
     }
 
     .orders {
@@ -347,6 +469,10 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .push-top {
+        grid-template-columns: 1fr;
+      }
+
       .order-body {
         grid-template-columns: 1fr;
       }
@@ -394,6 +520,40 @@
       <div class="stat">
         <small>Последнее обновление</small>
         <strong id="statUpdated" style="font-size:18px">—</strong>
+      </div>
+    </div>
+
+    <div class="push-card">
+      <h2 class="section-title">Push-уведомления</h2>
+
+      <div class="push-top">
+        <div class="push-stat">
+          <small>Push на сервере</small>
+          <strong id="pushEnabled">—</strong>
+        </div>
+        <div class="push-stat">
+          <small>Подписчиков</small>
+          <strong id="pushSubscriptions">0</strong>
+        </div>
+        <div class="push-stat">
+          <small>Последняя проверка</small>
+          <strong id="pushCheckedAt">—</strong>
+        </div>
+      </div>
+
+      <div class="push-form">
+        <input id="pushTitle" type="text" value="Сладкая планета" placeholder="Заголовок уведомления" />
+        <textarea id="pushBody" placeholder="Текст уведомления"></textarea>
+        <input id="pushUrl" type="text" value="/" placeholder="Ссылка при нажатии, например /" />
+
+        <div class="push-actions">
+          <button id="checkPushBtn" class="btn-gray" type="button">Проверить подписчиков</button>
+          <button id="pricePushBtn" class="btn-blue" type="button">Обновление прайса</button>
+          <button id="testPushBtn" class="btn-green" type="button">Тест себе</button>
+          <button id="sendPushBtn" class="btn-dark" type="button">Отправить всем</button>
+        </div>
+
+        <div id="pushResult" class="push-result"></div>
       </div>
     </div>
 
@@ -464,7 +624,6 @@
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         const ctx = new AudioCtx();
-
         const now = ctx.currentTime;
 
         const o1 = ctx.createOscillator();
@@ -518,7 +677,6 @@
     async function loadOrders() {
       const res = await fetch('/api/orders', { cache: 'no-store' });
       const data = await res.json();
-
       const orders = Array.isArray(data.orders) ? data.orders : [];
 
       if (orders.length > 0) {
@@ -542,141 +700,138 @@
     }
 
     function render() {
-  const q = document.getElementById('search').value.trim().toLowerCase();
-  const onlyNew = document.getElementById('onlyNew').checked;
+      const q = document.getElementById('search').value.trim().toLowerCase();
+      const onlyNew = document.getElementById('onlyNew').checked;
 
-  // 🔥 СОРТИРОВКА (главное изменение)
-  const sorted = [...allOrders].sort((a, b) => {
-    const priority = {
-      new: 0,
-      done: 1,
-      cancelled: 2
-    };
+      const sorted = [...allOrders].sort((a, b) => {
+        const priority = {
+          new: 0,
+          done: 1,
+          cancelled: 2
+        };
 
-    const pa = priority[a.status] ?? 3;
-    const pb = priority[b.status] ?? 3;
+        const pa = priority[a.status] ?? 3;
+        const pb = priority[b.status] ?? 3;
 
-    // сначала по статусу
-    if (pa !== pb) return pa - pb;
+        if (pa !== pb) return pa - pb;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
 
-    // потом по дате (новые сверху)
-    return new Date(b.createdAt) - new Date(a.createdAt);
-  });
+      const filtered = sorted.filter(order => {
+        const haystack = [
+          order.id,
+          order.comment,
+          order.customerName,
+          order.customerPhone,
+          order.rawText,
+          ...(order.items || []).map(i => i.article)
+        ].join(' ').toLowerCase();
 
-  const filtered = sorted.filter(order => {
-    const haystack = [
-      order.id,
-      order.comment,
-      order.customerName,
-      order.customerPhone,
-      order.rawText,
-      ...(order.items || []).map(i => i.article)
-    ].join(' ').toLowerCase();
+        if (onlyNew && order.status !== 'new') return false;
+        return !q || haystack.includes(q);
+      });
 
-    if (onlyNew && order.status !== 'new') return false;
-    return !q || haystack.includes(q);
-  });
+      document.getElementById('statOrders').textContent = allOrders.length;
+      document.getElementById('statNew').textContent = allOrders.filter(o => o.status === 'new').length;
+      document.getElementById('statDone').textContent = allOrders.filter(o => o.status === 'done').length;
+      document.getElementById('statCancelled').textContent = allOrders.filter(o => o.status === 'cancelled').length;
+      document.getElementById('statUpdated').textContent = new Date().toLocaleTimeString('ru-RU');
 
-  document.getElementById('statOrders').textContent = allOrders.length;
-  document.getElementById('statNew').textContent = allOrders.filter(o => o.status === 'new').length;
-  document.getElementById('statDone').textContent = allOrders.filter(o => o.status === 'done').length;
-  document.getElementById('statCancelled').textContent = allOrders.filter(o => o.status === 'cancelled').length;
-  document.getElementById('statUpdated').textContent = new Date().toLocaleTimeString('ru-RU');
+      const root = document.getElementById('orders');
+      root.innerHTML = '';
 
-  const root = document.getElementById('orders');
-  root.innerHTML = '';
+      if (!filtered.length) {
+        root.innerHTML = '<div class="empty">Заказов пока нет</div>';
+        return;
+      }
 
-  if (!filtered.length) {
-    root.innerHTML = '<div class="empty">Заказов пока нет</div>';
-    return;
-  }
+      for (const order of filtered) {
+        const orderSum = calcOrderSum(order);
 
-  for (const order of filtered) {
-    const orderSum = calcOrderSum(order);
+        const itemsRows = (order.items || []).map(item => {
+          const product = productsMap[item.article];
+          const price = product ? Number(product.price || 0) : 0;
+          const lineSum = price * Number(item.quantity || 0);
 
-    const itemsRows = (order.items || []).map(item => {
-      const product = productsMap[item.article];
-      const price = product ? Number(product.price || 0) : 0;
-      const lineSum = price * Number(item.quantity || 0);
+          return `
+            <tr>
+              <td class="article">${escapeHtml(item.article)}</td>
+              <td class="qty">${escapeHtml(item.quantity)}</td>
+              <td>${formatMoney(price)}</td>
+              <td>${formatMoney(lineSum)}</td>
+            </tr>
+          `;
+        }).join('');
 
-      return `
-        <tr>
-          <td class="article">${escapeHtml(item.article)}</td>
-          <td class="qty">${escapeHtml(item.quantity)}</td>
-          <td>${formatMoney(price)}</td>
-          <td>${formatMoney(lineSum)}</td>
-        </tr>
-      `;
-    }).join('');
+        const div = document.createElement('div');
+        div.className = `order ${escapeHtml(order.status || 'new')}`;
 
-    const div = document.createElement('div');
-    div.className = `order ${escapeHtml(order.status || 'new')}`;
-
-    div.innerHTML = `
-      <div class="order-head">
-        <div>
-          <div class="order-title">Заказ #${escapeHtml(order.id)}</div>
-          <div class="muted">${escapeHtml(formatDate(order.createdAt))}</div>
-        </div>
-
-        <div class="head-right">
-          <div class="order-sum">Сумма: ${formatMoney(orderSum)}</div>
-          <div class="status-badge status-${escapeHtml(order.status || 'new')}">
-            ${escapeHtml(getStatusText(order.status))}
-          </div>
-        </div>
-      </div>
-
-      <div class="order-body">
-        <div class="box">
-          <div class="box-title">Позиции</div>
-          <table>
-            <thead>
-              <tr>
-                <th>Артикул</th>
-                <th>Количество</th>
-                <th>Цена</th>
-                <th>Сумма</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsRows}
-            </tbody>
-          </table>
-        </div>
-
-        <div class="box">
-          <div class="box-title">Информация</div>
-          <div class="meta">
-            <div class="meta-row"><strong>Комментарий:</strong> ${escapeHtml(order.comment || '—')}</div>
-            <div class="meta-row"><strong>Клиент:</strong> ${escapeHtml(order.customerName || '—')}</div>
-            <div class="meta-row"><strong>Телефон:</strong> ${escapeHtml(order.customerPhone || '—')}</div>
-            <div class="meta-row"><strong>Позиций:</strong> ${escapeHtml(order.totalItems || 0)}</div>
-            <div class="meta-row"><strong>Количество:</strong> ${escapeHtml(order.totalQuantity || 0)}</div>
-            <div class="meta-row">
-              <strong>Текст заказа:</strong>
-              <div class="raw">${escapeHtml(order.rawText || '')}</div>
+        div.innerHTML = `
+          <div class="order-head">
+            <div>
+              <div class="order-title">Заказ #${escapeHtml(order.id)}</div>
+              <div class="muted">${escapeHtml(formatDate(order.createdAt))}</div>
             </div>
 
-            <div class="actions">
-              <button class="btn-copy" data-copy-order="${order.id}">
-                Копировать в Excel
-              </button>
-
-              ${
-                order.status === 'cancelled'
-                  ? `<button class="btn-restore" data-restore-order="${order.id}">Вернуть</button>`
-                  : `<button class="btn-cancel" data-cancel-order="${order.id}">Отмена</button>`
-              }
+            <div class="head-right">
+              <div class="order-sum">Сумма: ${formatMoney(orderSum)}</div>
+              <div class="status-badge status-${escapeHtml(order.status || 'new')}">
+                ${escapeHtml(getStatusText(order.status))}
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    `;
 
-    root.appendChild(div);
-  }
-}
+          <div class="order-body">
+            <div class="box">
+              <div class="box-title">Позиции</div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Артикул</th>
+                    <th>Количество</th>
+                    <th>Цена</th>
+                    <th>Сумма</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsRows}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="box">
+              <div class="box-title">Информация</div>
+              <div class="meta">
+                <div class="meta-row"><strong>Комментарий:</strong> ${escapeHtml(order.comment || '—')}</div>
+                <div class="meta-row"><strong>Клиент:</strong> ${escapeHtml(order.customerName || '—')}</div>
+                <div class="meta-row"><strong>Телефон:</strong> ${escapeHtml(order.customerPhone || '—')}</div>
+                <div class="meta-row"><strong>Позиций:</strong> ${escapeHtml(order.totalItems || 0)}</div>
+                <div class="meta-row"><strong>Количество:</strong> ${escapeHtml(order.totalQuantity || 0)}</div>
+                <div class="meta-row">
+                  <strong>Текст заказа:</strong>
+                  <div class="raw">${escapeHtml(order.rawText || '')}</div>
+                </div>
+
+                <div class="actions">
+                  <button class="btn-copy" data-copy-order="${order.id}">
+                    Копировать в Excel
+                  </button>
+
+                  ${
+                    order.status === 'cancelled'
+                      ? `<button class="btn-restore" data-restore-order="${order.id}">Вернуть</button>`
+                      : `<button class="btn-cancel" data-cancel-order="${order.id}">Отмена</button>`
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        root.appendChild(div);
+      }
+    }
+
     async function patchStatus(orderId, status) {
       const res = await fetch('/api/orders/' + orderId + '/status', {
         method: 'PATCH',
@@ -692,6 +847,51 @@
       }
 
       return true;
+    }
+
+    function setPushResult(message, isError = false) {
+      const box = document.getElementById('pushResult');
+      box.className = 'push-result ' + (isError ? 'error' : 'ok');
+      box.textContent = message;
+    }
+
+    async function loadPushStats() {
+      try {
+        const res = await fetch('/api/push/stats', { cache: 'no-store' });
+        const data = await res.json();
+
+        document.getElementById('pushEnabled').textContent = data.enabled ? 'Включён' : 'Выключен';
+        document.getElementById('pushSubscriptions').textContent = data.subscriptions ?? 0;
+        document.getElementById('pushCheckedAt').textContent = new Date().toLocaleTimeString('ru-RU');
+      } catch {
+        document.getElementById('pushEnabled').textContent = 'Ошибка';
+        document.getElementById('pushSubscriptions').textContent = '—';
+        document.getElementById('pushCheckedAt').textContent = new Date().toLocaleTimeString('ru-RU');
+      }
+    }
+
+    function getPushPayload() {
+      return {
+        title: document.getElementById('pushTitle').value.trim() || 'Сладкая планета',
+        body: document.getElementById('pushBody').value.trim(),
+        url: document.getElementById('pushUrl').value.trim() || '/'
+      };
+    }
+
+    async function sendPush(payload) {
+      const res = await fetch('/api/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Не удалось отправить push');
+      }
+
+      return data;
     }
 
     document.addEventListener('click', unlockAudio, { once: true });
@@ -753,6 +953,62 @@
     document.getElementById('refreshBtn').addEventListener('click', async () => {
       await loadProducts();
       await loadOrders();
+      await loadPushStats();
+    });
+
+    document.getElementById('checkPushBtn').addEventListener('click', async () => {
+      await loadPushStats();
+      setPushResult('Статистика push обновлена');
+    });
+
+    document.getElementById('pricePushBtn').addEventListener('click', () => {
+      document.getElementById('pushTitle').value = 'Сладкая планета';
+      document.getElementById('pushBody').value = 'Цены обновлены, можно оформлять заказ';
+      document.getElementById('pushUrl').value = '/';
+      setPushResult('Шаблон "Обновление прайса" подставлен');
+    });
+
+    document.getElementById('testPushBtn').addEventListener('click', async () => {
+      try {
+        const payload = getPushPayload();
+
+        if (!payload.body) {
+          alert('Заполни текст уведомления');
+          return;
+        }
+
+        const data = await sendPush(payload);
+        await loadPushStats();
+
+        setPushResult(
+          `Отправлено: ${data.sent ?? 0}, ошибок: ${data.failed ?? 0}, удалено подписок: ${data.removed ?? 0}`
+        );
+      } catch (e) {
+        setPushResult(e.message || 'Ошибка отправки push', true);
+      }
+    });
+
+    document.getElementById('sendPushBtn').addEventListener('click', async () => {
+      try {
+        const payload = getPushPayload();
+
+        if (!payload.body) {
+          alert('Заполни текст уведомления');
+          return;
+        }
+
+        const ok = confirm('Отправить push всем подписчикам?');
+        if (!ok) return;
+
+        const data = await sendPush(payload);
+        await loadPushStats();
+
+        setPushResult(
+          `Push отправлен. Всего: ${data.total ?? 0}, доставлено: ${data.sent ?? 0}, ошибок: ${data.failed ?? 0}, удалено: ${data.removed ?? 0}`
+        );
+      } catch (e) {
+        setPushResult(e.message || 'Ошибка отправки push', true);
+      }
     });
 
     document.getElementById('search').addEventListener('input', render);
@@ -761,10 +1017,12 @@
     async function init() {
       await loadProducts();
       await loadOrders();
+      await loadPushStats();
 
       setInterval(async () => {
         await loadProducts();
         await loadOrders();
+        await loadPushStats();
       }, 3000);
     }
 
