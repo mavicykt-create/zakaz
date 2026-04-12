@@ -11,7 +11,30 @@
 <meta name="theme-color" content="#ffffff" />
 <link rel="manifest" href="/manifest.json" />
 <style>
-  :root{
+  
+:root{
+  --app-height: 100vh;
+}
+
+html, body{
+  height:100%;
+  min-height:100%;
+  overflow-x:hidden;
+}
+
+.wrap{
+  min-height:var(--app-height);
+  display:flex;
+}
+
+@supports (height: 100svh) {
+  :root{ --app-height: 100svh; }
+}
+@supports (height: 100dvh) {
+  :root{ --app-height: 100dvh; }
+}
+
+  
     --bg:#f5f5f7;
     --card:rgba(255,255,255,.84);
     --card-solid:#ffffff;
@@ -59,7 +82,7 @@
   }
 
   .card{
-    min-height:calc(100vh - 24px);
+    min-height: calc(var(--app-height) - 24px);
     padding:18px;
     border-radius:34px;
     background:var(--card);
@@ -1502,5 +1525,19 @@ sync();
     showPwaHint(false);
   }, 4000);
 </script>
+
+<script>
+function setAppHeight(){
+  const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  document.documentElement.style.setProperty('--app-height', h + 'px');
+}
+setAppHeight();
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', setAppHeight);
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', setAppHeight);
+}
+</script>
+
 </body>
 </html>
