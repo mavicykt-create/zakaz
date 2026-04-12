@@ -779,6 +779,7 @@
       --app-height:100dvh;
     }
   }
+
 </style>
 </head>
 <body>
@@ -829,6 +830,7 @@
         <span class="menu-lines"><span></span><span></span><span></span></span>
       </button>
     </div>
+
   </div>
 </div>
 
@@ -919,42 +921,7 @@ const elSubmit = document.getElementById('submit');
 const elFeedDot = document.getElementById('feedDot');
 const elFeedStatusText = document.getElementById('feedStatusText');
 const okKeySelector = '.key.ok';
-
 let messageTimer = null;
-let liveStatsTimer = null;
-
-const liveSessionId = (() => {
-  const existing = localStorage.getItem('liveSessionId');
-  if (existing) return existing;
-
-  const id = 'sess_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-  localStorage.setItem('liveSessionId', id);
-  return id;
-})();
-
-function getCurrentCartSum(){
-  return rows.reduce((sum, r) => sum + (getPrice(r.code) * r.qty), 0);
-}
-
-function sendLiveStats(){
-  const sum = getCurrentCartSum();
-
-  fetch('/api/live', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: liveSessionId,
-      sum
-    })
-  }).catch(() => {});
-}
-
-function scheduleLiveStats(){
-  clearTimeout(liveStatsTimer);
-  liveStatsTimer = setTimeout(() => {
-    sendLiveStats();
-  }, 250);
-}
 
 function hideMessageToast(){
   clearTimeout(messageTimer);
@@ -973,6 +940,7 @@ function showMessageToast(html){
     hideMessageToast();
   }, 3200);
 }
+
 
 function beepSuccess(freq = 980){
   try{
@@ -997,7 +965,7 @@ function beepSuccess(freq = 980){
   }catch(e){}
 }
 
-function vibrateSuccess(){
+  function vibrateSuccess(){
   try{
     if (navigator.vibrate) navigator.vibrate(25);
   }catch(e){}
@@ -1008,7 +976,7 @@ function vibrateError(){
     if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
   }catch(e){}
 }
-
+  
 function beepError(){
   try{
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1213,7 +1181,8 @@ function sync(){
     elPreviewActions.style.display = 'none';
   }
 
-  const sum = getCurrentCartSum();
+  let sum = 0;
+  rows.forEach(r => sum += r.qty * getPrice(r.code));
   elSum.textContent = sum.toLocaleString('ru-RU') + ' ₽';
   elCommentState.textContent = (elComment.value || '').trim() ? 'добавлен' : 'нет';
 
@@ -1224,12 +1193,10 @@ function sync(){
   }else{
     clearAutoAdd();
   }
-
-  scheduleLiveStats();
 }
 
 function addDigit(d){
-  hideMessageToast();
+  elMsg.style.display = 'none';
   elDisplay.classList.remove('invalid');
   elPreviewPanel.classList.remove('invalid');
 
@@ -1255,11 +1222,11 @@ function addCode(isAuto){
   const code = current;
 
   if(!hasProduct(code)){
-    beepError();
-    vibrateError();
-    showInvalidCode();
-    return;
-  }
+  beepError();
+  vibrateError();
+  showInvalidCode();
+  return;
+}
 
   beepSuccess(isAuto ? 920 : 980);
   vibrateSuccess();
@@ -1287,7 +1254,7 @@ function clearCart(){
   rows = [];
   current = '';
   elComment.value = '';
-  hideMessageToast();
+  elMsg.style.display = 'none';
   elDisplay.classList.remove('invalid');
   elPreviewPanel.classList.remove('invalid');
   sync();
@@ -1311,7 +1278,7 @@ async function send(){
 
   const comment = (elComment.value || '').trim();
   const orderRows = getOrderRowsForApi();
-  const orderSum = getCurrentCartSum();
+  const orderSum = rows.reduce((sum, r) => sum + (getPrice(r.code) * r.qty), 0);
 
   try{
     const res = await fetch('/api/order', {
@@ -1341,7 +1308,6 @@ async function send(){
     current = '';
     elComment.value = '';
     sync();
-    sendLiveStats();
   }finally{
     isSending = false;
     elSubmit.disabled = false;
@@ -1434,23 +1400,8 @@ document.getElementById('itemsList').addEventListener('click', function(e){
 
 elMsg.addEventListener('click', hideMessageToast);
 
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    sendLiveStats();
-  }
-});
-
-window.addEventListener('beforeunload', () => {
-  sendLiveStats();
-});
-
 loadPrices();
 sync();
-sendLiveStats();
-
-setInterval(() => {
-  sendLiveStats();
-}, 5000);
 </script>
 
 <script>
@@ -1508,7 +1459,7 @@ setInterval(() => {
       alert('Push включен');
     } catch (e) {
       console.error(e);
-      alert('Сообщения можно получать, если только установить сайт как приложение на домашнем экране. Инструкция: Нажмите кнопку "Поделиться", далее "На экран Домой".');
+      alert('Сообщения можно получать, если только установить сайт как приложение на домашнем экране. Инструкция: Нажмите кнопку <span class="share-icon"></span> далее "На экран Домой"');
     }
   }
 </script>
