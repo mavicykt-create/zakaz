@@ -18,23 +18,6 @@ const publicDir = path.join(__dirname, 'public');
 const PORT = Number(process.env.PORT || 3000);
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
-/* =========================
-   🔥 LIVE USERS (НОВОЕ)
-========================= */
-const activeSessions = new Map();
-
-setInterval(() => {
-  const now = Date.now();
-
-  for (const [id, session] of activeSessions) {
-    if (now - session.updatedAt > 15000) {
-      activeSessions.delete(id);
-    }
-  }
-}, 5000);
-
-/* ========================= */
-
 app.set('trust proxy', 1);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(morgan('combined'));
@@ -56,62 +39,28 @@ const createOrderLimiter = rateLimit({
   limit: 30,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { success: false, error: 'Слишком много запросов.' }
+  message: { success: false, error: 'Слишком много запросов. Попробуйте чуть позже.' }
 });
 
-/* =========================
-   HEALTH
-========================= */
 app.get('/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.json({ ok: true, db: true });
   } catch (error) {
-    res.status(500).json({ ok: false, db: false });
+    res.status(500).json({ ok: false, db: false, error: error.message });
   }
 });
 
-/* =========================
-   🔥 LIVE API (НОВОЕ)
-========================= */
-app.post('/api/live', (req, res) => {
-  const { sessionId, sum } = req.body;
-
-  if (!sessionId) return res.json({ ok: false });
-
-  activeSessions.set(sessionId, {
-    sum: Number(sum || 0),
-    updatedAt: Date.now()
-  });
-
-  res.json({ ok: true });
-});
-
-app.get('/api/live/stats', basicAuth, (req, res) => {
-  let users = activeSessions.size;
-  let total = 0;
-
-  for (const s of activeSessions.values()) {
-    total += s.sum;
-  }
-
-  res.json({
-    users,
-    total,
-    avg: users ? Math.round(total / users) : 0
-  });
-});
-
-/* =========================
-   ORDERS
-========================= */
 app.post('/api/orders', createOrderLimiter, async (req, res, next) => {
   try {
     const { text = '', comment = '', customerName = '', customerPhone = '' } = req.body || {};
     const parsed = parseOrderText(text);
 
     if (parsed.items.length === 0) {
-      return res.status(400).json({ success: false, error: 'Нет товаров' });
+      return res.status(400).json({
+        success: false,
+        error: 'Не удалось найти позиции заказа. Проверьте текст.'
+      });
     }
 
     const order = await prisma.order.create({
@@ -134,7 +83,10 @@ app.post('/api/orders', createOrderLimiter, async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      orderId: order.id
+      orderId: order.id,
+      totalItems: order.totalItems,
+      totalQuantity: order.totalQuantity,
+      items: order.items
     });
   } catch (error) {
     next(error);
@@ -143,7 +95,13 @@ app.post('/api/orders', createOrderLimiter, async (req, res, next) => {
 
 app.get('/api/orders', basicAuth, async (req, res, next) => {
   try {
+    const status = typeof req.query.status === 'string' ? req.query.status : undefined;
+    const where = status && ['new', 'processing', 'done', 'cancelled'].includes(status)
+      ? { status }
+      : {};
+
     const orders = await prisma.order.findMany({
+      where,
       include: { items: true },
       orderBy: { createdAt: 'desc' }
     });
@@ -154,10 +112,41 @@ app.get('/api/orders', basicAuth, async (req, res, next) => {
   }
 });
 
+app.get('/api/orders/:id', basicAuth, async (req, res, next) => {
+  try {
+    const orderId = Number(req.params.id);
+    if (!Number.isInteger(orderId)) {
+      return res.status(400).json({ success: false, error: 'Некорректный ID заказа.' });
+    }
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true }
+    });
+
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Заказ не найден.' });
+    }
+
+    res.json({ success: true, order });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.patch('/api/orders/:id/status', basicAuth, async (req, res, next) => {
   try {
     const orderId = Number(req.params.id);
-    const status = String(req.body?.status || '');
+    const status = String(req.body?.status || '').trim();
+    const allowed = ['new', 'processing', 'done', 'cancelled'];
+
+    if (!Number.isInteger(orderId)) {
+      return res.status(400).json({ success: false, error: 'Некорректный ID заказа.' });
+    }
+
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ success: false, error: 'Некорректный статус.' });
+    }
 
     const order = await prisma.order.update({
       where: { id: orderId },
@@ -171,27 +160,35 @@ app.patch('/api/orders/:id/status', basicAuth, async (req, res, next) => {
   }
 });
 
-/* ========================= */
-
 app.use('/admin', basicAuth, express.static(publicDir));
 app.use('/public', express.static(publicDir));
 
 app.get('/', (_req, res) => {
-  res.json({ ok: true });
+  res.json({
+    ok: true,
+    service: 'zakaz-backend',
+    health: '/health',
+    admin: '/admin',
+    createOrder: 'POST /api/orders'
+  });
 });
 
 app.use((error, _req, res, _next) => {
   console.error(error);
-  res.status(500).json({ success: false });
+  res.status(500).json({
+    success: false,
+    error: 'Внутренняя ошибка сервера.'
+  });
 });
 
 async function start() {
   try {
     await prisma.$connect();
     app.listen(PORT, () => {
-      console.log(`Server started on ${PORT}`);
+      console.log(`Server started on port ${PORT}`);
     });
   } catch (error) {
+    console.error('Failed to start server', error);
     process.exit(1);
   }
 }
