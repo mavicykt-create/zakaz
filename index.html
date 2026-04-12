@@ -942,23 +942,41 @@ function showMessageToast(html){
 }
 
 
-function beepSuccess(freq){
+function beepSuccess(freq = 980){
   try{
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AudioCtx();
+
     const o = ctx.createOscillator();
     const g = ctx.createGain();
-    o.frequency.value = freq;
-    o.type = 'sine';
+
+    o.type = 'square';
+    o.frequency.setValueAtTime(freq, ctx.currentTime);
+
     o.connect(g);
     g.connect(ctx.destination);
+
     g.gain.setValueAtTime(0.0001, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.06, ctx.currentTime + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.06);
+    g.gain.exponentialRampToValueAtTime(0.09, ctx.currentTime + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.045);
+
     o.start();
-    o.stop(ctx.currentTime + 0.06);
+    o.stop(ctx.currentTime + 0.05);
   }catch(e){}
 }
 
+  function vibrateSuccess(){
+  try{
+    if (navigator.vibrate) navigator.vibrate(25);
+  }catch(e){}
+}
+
+function vibrateError(){
+  try{
+    if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+  }catch(e){}
+}
+  
 function beepError(){
   try{
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1204,12 +1222,14 @@ function addCode(isAuto){
   const code = current;
 
   if(!hasProduct(code)){
-    beepError();
-    showInvalidCode();
-    return;
-  }
+  beepError();
+  vibrateError();
+  showInvalidCode();
+  return;
+}
 
-  beepSuccess(isAuto ? 760 : 820);
+  beepSuccess(isAuto ? 920 : 980);
+  vibrateSuccess();
 
   const found = rows.find(r => r.code === code);
   if(found) found.qty += 1;
@@ -1224,6 +1244,7 @@ function addCode(isAuto){
 function changeIndex(index,delta){
   if(index < 0 || index >= rows.length) return;
   beepSuccess(delta > 0 ? 940 : 540);
+  vibrateSuccess();
   rows[index].qty += delta;
   if(rows[index].qty <= 0) rows.splice(index,1);
   sync();
