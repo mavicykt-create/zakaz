@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Заказы — админка</title>
+    <link rel="stylesheet" href="/public/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <div>
+          <h1>Заказы</h1>
+          <p>Простая админка для просмотра и смены статуса.</p>
+        </div>
+        <button id="reloadButton">Обновить</button>
+      </header>
+
+      <section class="filters card">
+        <label>
+          Статус
+          <select id="statusFilter">
+            <option value="">Все</option>
+            <option value="new">Новые</option>
+            <option value="processing">В работе</option>
+            <option value="done">Выполнено</option>
+            <option value="cancelled">Отменено</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="card">
+        <div id="ordersInfo" class="muted">Загрузка…</div>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Позиций</th>
+                <th>Количество</th>
+                <th>Комментарий</th>
+                <th>Состав</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="/public/admin.js"></script>
+  </body>
+</html>
